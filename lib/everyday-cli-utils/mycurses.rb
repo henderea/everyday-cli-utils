@@ -16,27 +16,29 @@ module EverydayCliUtils
       @cur_l      = 0
       @max_l      = 0
       @ch         = nil
-      if @use_curses
-        Curses::noecho
-        Curses::init_screen
-        @subpad_start = linesh
-        update_subpad_size
-        @padh = Curses::Pad.new(linesh, Curses::cols)
-        @padb = Curses::Pad.new(Curses::lines - linesh - linesf, Curses::cols)
-        @padf = Curses::Pad.new(linesf, Curses::cols)
-        @padh.keypad(true)
-        @padh.clear
-        @padh.nodelay = true
-        @padb.keypad(true)
-        @padb.clear
-        @padb.nodelay = true
-        @padf.keypad(true)
-        @padf.clear
-        @padf.nodelay = true
-        Curses::cbreak
-        Curses::start_color
-        Curses::use_default_colors
-      end
+      setup_curses(linesf, linesh) if @use_curses
+    end
+
+    def setup_curses(linesf, linesh)
+      Curses::noecho
+      Curses::init_screen
+      @subpad_start = linesh
+      update_subpad_size
+      @padh = Curses::Pad.new(linesh, Curses::cols)
+      @padb = Curses::Pad.new(Curses::lines - linesh - linesf, Curses::cols)
+      @padf = Curses::Pad.new(linesf, Curses::cols)
+      @padh.keypad(true)
+      @padh.clear
+      @padh.nodelay = true
+      @padb.keypad(true)
+      @padb.clear
+      @padb.nodelay = true
+      @padf.keypad(true)
+      @padf.clear
+      @padf.nodelay = true
+      Curses::cbreak
+      Curses::start_color
+      Curses::use_default_colors
     end
 
     def clear
@@ -46,35 +48,33 @@ module EverydayCliUtils
     end
 
     def myprints
-      if @use_curses
-        @padh.resize(@headers.count, Curses::cols)
-        @padb.resize(@bodies.count, Curses::cols)
-        @padf.resize(@footers.count, Curses::cols)
-        @padh.clear
-        @padb.clear
-        @padf.clear
-        @padh.setpos(0, 0)
-        @padb.setpos(0, 0)
-        @padf.setpos(0, 0)
-        myprint(@headers.join("\n"), @padh)
-        myprint(@bodies.join("\n"), @padb)
-        myprint(@footers.join("\n"), @padf)
-        update_max_l
-        @cur_l = [@cur_l, @max_l].min
-        padh_refresh
-        padb_refresh
-        padf_refresh
-      else
-        @headers.each { |v|
-          puts v
-        }
-        @bodies.each { |v|
-          puts v
-        }
-        @footers.each { |v|
-          puts v
-        }
-      end
+      @use_curses ? print_curses : print_normal
+    end
+
+    def print_normal
+      @headers.each { |v| puts v }
+      @bodies.each { |v| puts v }
+      @footers.each { |v| puts v }
+    end
+
+    def print_curses
+      @padh.resize(@headers.count, Curses::cols)
+      @padb.resize(@bodies.count, Curses::cols)
+      @padf.resize(@footers.count, Curses::cols)
+      @padh.clear
+      @padb.clear
+      @padf.clear
+      @padh.setpos(0, 0)
+      @padb.setpos(0, 0)
+      @padf.setpos(0, 0)
+      myprint(@headers.join("\n"), @padh)
+      myprint(@bodies.join("\n"), @padb)
+      myprint(@footers.join("\n"), @padf)
+      update_max_l
+      @cur_l = [@cur_l, @max_l].min
+      padh_refresh
+      padb_refresh
+      padf_refresh
     end
 
     def read_ch
@@ -137,18 +137,21 @@ module EverydayCliUtils
     end
 
     def handle_color(fgcolor, bgcolor)
-      if (fgcolor.nil? || fgcolor == :none) && (bgcolor.nil? || bgcolor == :none)
-        return 0
-      end
-      ind = @colors.find_index { |v| v[0] == (fgcolor || :none) && v[1] == (bgcolor || :none) }
-      if ind.nil?
-        Curses::init_pair(@colors.count + 1, COLOR_TO_CURSES[fgcolor || :none], COLOR_TO_CURSES[bgcolor || :none])
-        ind = @colors.count + 1
-        @colors << [fgcolor || :none, bgcolor || :none]
-      else
-        ind += 1
-      end
+      return 0 if (fgcolor.nil? || fgcolor == :none) && (bgcolor.nil? || bgcolor == :none)
+      ind = find_color(bgcolor, fgcolor)
+      ind = ind.nil? ? add_color(bgcolor, fgcolor) : ind + 1
       Curses::color_pair(ind)
+    end
+
+    def add_color(bgcolor, fgcolor)
+      Curses::init_pair(@colors.count + 1, COLOR_TO_CURSES[fgcolor || :none], COLOR_TO_CURSES[bgcolor || :none])
+      ind = @colors.count + 1
+      @colors << [fgcolor || :none, bgcolor || :none]
+      ind
+    end
+
+    def find_color(bgcolor, fgcolor)
+      @colors.find_index { |v| v[0] == (fgcolor || :none) && v[1] == (bgcolor || :none) }
     end
 
     def myputs(text, pad)
