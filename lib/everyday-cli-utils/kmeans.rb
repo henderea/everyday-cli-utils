@@ -76,6 +76,23 @@ module EverydayCliUtils
       ft2  = f_test2(cs, ks, cnt)
       return ft, ft2, fto, fto2, ks, kso
     end
+
+    def self.run_nmeans(avg, cnt, collection, ft, ft1, ft2, ks, ks1, max_k, threshold)
+      (3..[max_k, cnt].min).each { |k|
+        ft, ft2, fto, fto2, ks, kso = run_nmean(collection, avg, cnt, ft, ft2, k, ks)
+        return kso if ((ft - fto) / fto) < threshold && fto2 < ft1
+      }
+      ft2 >= ft1 ? ks1 : ks
+    end
+
+    def self.run_kmean(collection, ks)
+      kso      = ks
+      clusters = collection.get_clusters(kso)
+      ks       = []
+      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? kso[key] : (val.sum / val.count) }
+      ks.sort
+      return kso, ks
+    end
   end
 end
 
@@ -98,15 +115,11 @@ module Enumerable
   end
 
   def nmeans(max_k = 10, threshold = 0.05)
-    collection = self.map(&:to_f)
+    collection    = self.map(&:to_f)
     avg, cnt, ks1 = EverydayCliUtils::Kmeans.nmeans_setup_1(collection)
     return ks1 if cnt == 1
     ft, ft1, ft2, ks = EverydayCliUtils::Kmeans.nmeans_setup_2(collection, avg, cnt, ks1)
-    (3..[max_k, cnt].min).each { |k|
-      ft, ft2, fto, fto2, ks, kso = EverydayCliUtils::Kmeans.run_nmean(collection, avg, cnt, ft, ft2, k, ks)
-      return kso if ((ft - fto) / fto) < threshold && fto2 < ft1
-    }
-    ft2 >= ft1 ? ks1 : ks
+    EverydayCliUtils::Kmeans.run_nmeans(avg, cnt, collection, ft, ft1, ft2, ks, ks1, max_k, threshold)
   end
 
   def kmeans(k)
@@ -114,24 +127,10 @@ module Enumerable
     ma   = max
     diff = ma - mi
     ks   = []
-    (1..k).each { |i|
-      ks[i - 1] = mi + (i * (diff / (k + 1.0)))
-    }
+    (1..k).each { |i| ks[i - 1] = mi + (i * (diff / (k + 1.0))) }
     kso = false
     while ks != kso
-      kso      = ks
-      clusters = get_clusters(kso)
-      ks       = []
-      clusters.each_with_index { |val, key|
-        cnt = val.count
-        if cnt <= 0
-          ks[key] = kso[key]
-        else
-          sum     = val.sum
-          ks[key] = (sum / cnt)
-        end
-      }
-      ks.sort
+      kso, ks = EverydayCliUtils::Kmeans.run_kmean(self, ks)
     end
     ks
   end
