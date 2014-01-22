@@ -1,9 +1,10 @@
 require 'curses'
 require_relative 'format'
+require_relative 'curses_utils'
 
 module EverydayCliUtils
   class MyCurses
-
+    include CursesUtils
     #region External
     def initialize(use_curses, linesh, linesf)
       @use_curses = use_curses
@@ -27,6 +28,10 @@ module EverydayCliUtils
       @padh = Curses::Pad.new(linesh, Curses::cols)
       @padb = Curses::Pad.new(Curses::lines - linesh - linesf, Curses::cols)
       @padf = Curses::Pad.new(linesf, Curses::cols)
+      configure_curses
+    end
+
+    def configure_curses
       @padh.keypad(true)
       @padh.clear
       @padh.nodelay = true
@@ -58,6 +63,18 @@ module EverydayCliUtils
     end
 
     def print_curses
+      resize_curses
+      myprint(@headers.join("\n"), @padh)
+      myprint(@bodies.join("\n"), @padb)
+      myprint(@footers.join("\n"), @padf)
+      update_max_l
+      @cur_l = [@cur_l, @max_l].min
+      padh_refresh
+      padb_refresh
+      padf_refresh
+    end
+
+    def resize_curses
       @padh.resize(@headers.count, Curses::cols)
       @padb.resize(@bodies.count, Curses::cols)
       @padf.resize(@footers.count, Curses::cols)
@@ -67,14 +84,6 @@ module EverydayCliUtils
       @padh.setpos(0, 0)
       @padb.setpos(0, 0)
       @padf.setpos(0, 0)
-      myprint(@headers.join("\n"), @padh)
-      myprint(@bodies.join("\n"), @padb)
-      myprint(@footers.join("\n"), @padf)
-      update_max_l
-      @cur_l = [@cur_l, @max_l].min
-      padh_refresh
-      padb_refresh
-      padf_refresh
     end
 
     def read_ch
@@ -119,41 +128,6 @@ module EverydayCliUtils
     #endregion
 
     #region Internal
-    COLOR_TO_CURSES = {
-        :black  => Curses::COLOR_BLACK,
-        :red    => Curses::COLOR_RED,
-        :green  => Curses::COLOR_GREEN,
-        :yellow => Curses::COLOR_YELLOW,
-        :blue   => Curses::COLOR_BLUE,
-        :purple => Curses::COLOR_MAGENTA,
-        :cyan   => Curses::COLOR_CYAN,
-        :white  => Curses::COLOR_WHITE,
-        :none   => -1,
-    }
-
-    def get_format(str)
-      bold, underline, fgcolor, bgcolor = Format::parse_format(str)
-      (bold ? Curses::A_BOLD : 0) | (underline ? Curses::A_UNDERLINE : 0) | handle_color(fgcolor, bgcolor)
-    end
-
-    def handle_color(fgcolor, bgcolor)
-      return 0 if (fgcolor.nil? || fgcolor == :none) && (bgcolor.nil? || bgcolor == :none)
-      ind = find_color(bgcolor, fgcolor)
-      ind = ind.nil? ? add_color(bgcolor, fgcolor) : ind + 1
-      Curses::color_pair(ind)
-    end
-
-    def add_color(bgcolor, fgcolor)
-      Curses::init_pair(@colors.count + 1, COLOR_TO_CURSES[fgcolor || :none], COLOR_TO_CURSES[bgcolor || :none])
-      ind = @colors.count + 1
-      @colors << [fgcolor || :none, bgcolor || :none]
-      ind
-    end
-
-    def find_color(bgcolor, fgcolor)
-      @colors.find_index { |v| v[0] == (fgcolor || :none) && v[1] == (bgcolor || :none) }
-    end
-
     def myputs(text, pad)
       myprint("#{text}\n", pad)
     end
@@ -220,6 +194,6 @@ module EverydayCliUtils
 
     attr_reader :ch
     attr_accessor :bodies, :headers, :footers
-    private :get_format, :handle_color, :myputs, :myprint, :update_max_l, :update_subpad_size, :padh_refresh, :padb_refresh, :padf_refresh, :update_scroll
+    private :myputs, :myprint, :update_max_l, :update_subpad_size, :padh_refresh, :padb_refresh, :padf_refresh, :update_scroll
   end
 end

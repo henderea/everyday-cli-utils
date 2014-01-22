@@ -4,13 +4,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'everyday-cli-utils/version'
 
 Gem::Specification.new do |spec|
-  spec.name        = 'everyday-cli-utils'
-  spec.version     = EverydayCliUtils::VERSION
-  spec.authors     = ['Eric Henderson']
-  spec.email       = ['henderea@gmail.com']
-  spec.summary     = %q{A few CLI utils}
-  spec.homepage    = 'https://github.com/henderea/everyday-cli-utils'
-  spec.license     = 'MIT'
+  spec.name     = 'everyday-cli-utils'
+  spec.version  = EverydayCliUtils::VERSION
+  spec.authors  = ['Eric Henderson']
+  spec.email    = ['henderea@gmail.com']
+  spec.summary  = %q{A few CLI utils}
+  spec.homepage = 'https://github.com/henderea/everyday-cli-utils'
+  spec.license  = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
@@ -19,4 +19,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler', '~> 1.5'
   spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'simplecov', '>= 0.8.2'
+  spec.add_development_dependency 'coveralls', '>= 0.7.0'
+  spec.add_development_dependency 'rspec'
 end
