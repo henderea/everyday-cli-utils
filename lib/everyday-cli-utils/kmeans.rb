@@ -3,21 +3,25 @@ require_relative 'maputil'
 module EverydayCliUtils
   class Kmeans
     def self.normal(x, avg, std)
-      exp = -(((x - avg) / std) ** 2) / 2
-      ((Math.exp(exp) / (std * Math.sqrt(2 * Math::PI))))
+      exp = -(((x - avg) / std) ** 2.0) / 2.0
+      ((Math.exp(exp) / (std * Math.sqrt(2.0 * Math::PI))))
     end
 
     def self.f_test(clusters, means, cnt, avg)
-      ev   = 0
       cnt2 = clusters.count { |i| !i.empty? }
-      (0...means.count).each { |i|
-        unless clusters[i].empty?
-          ni = clusters[i].count
-          ev += ni * ((means[i] - avg) ** 2)
-        end
-      }
-      ev /= cnt2 - 1
-      uv = 0
+      ev   = f_test_ev(avg, clusters, cnt2, means)
+      uv   = f_test_uv(clusters, cnt, cnt2, means)
+      (ev / uv)
+    end
+
+    def self.f_test_ev(avg, clusters, cnt2, means)
+      ev = 0.0
+      (0...means.count).each { |i| ev += clusters[i].empty? ? 0.0 : clusters[i].count * ((means[i] - avg) ** 2.0) }
+      ev / (cnt2 - 1.0)
+    end
+
+    def self.f_test_uv(clusters, cnt, cnt2, means)
+      uv = 0.0
       (0...means.count).each { |i|
         unless clusters[i].empty?
           (0...clusters[i].count).each { |j|
@@ -25,24 +29,23 @@ module EverydayCliUtils
           }
         end
       }
-      uv /= (cnt - cnt2)
-      (ev / uv)
+      uv / (cnt - cnt2)
     end
 
     def self.f_test2(clusters, means, cnt)
-      uv   = 0
+      uv   = 0.0
       cnt2 = clusters.count { |i| !i.empty? }
-      (0...means.count).each { |i|
-        unless clusters[i].empty?
-          tmp = 0
-          (0...clusters[i].count).each { |j|
-            tmp += (clusters[i][j] - means[i]) ** 2
-          }
-          tmp /= clusters[i].count
-          uv  += Math.sqrt(tmp)
-        end
-      }
+      (0...means.count).each { |i| uv += f_test2_calc(clusters, i, means, uv) unless clusters[i].empty? }
       (uv / (cnt - cnt2))
+    end
+
+    def self.f_test2_calc(clusters, i, means, uv)
+      tmp = 0.0
+      (0...clusters[i].count).each { |j|
+        tmp += (clusters[i][j] - means[i]) ** 2.0
+      }
+      tmp /= clusters[i].count
+      Math.sqrt(tmp)
     end
 
     def self.nmeans_setup_1(collection)
@@ -95,11 +98,12 @@ module Enumerable
   end
 
   def nmeans(max_k = 10, threshold = 0.05)
-    avg, cnt, ks1 = EverydayCliUtils::Kmeans.nmeans_setup_1(self)
+    collection = self.map(&:to_f)
+    avg, cnt, ks1 = EverydayCliUtils::Kmeans.nmeans_setup_1(collection)
     return ks1 if cnt == 1
-    ft, ft1, ft2, ks = EverydayCliUtils::Kmeans.nmeans_setup_2(self, avg, cnt, ks1)
+    ft, ft1, ft2, ks = EverydayCliUtils::Kmeans.nmeans_setup_2(collection, avg, cnt, ks1)
     (3..[max_k, cnt].min).each { |k|
-      ft, ft2, fto, fto2, ks, kso = EverydayCliUtils::Kmeans.run_nmean(self, avg, cnt, ft, ft2, k, ks)
+      ft, ft2, fto, fto2, ks, kso = EverydayCliUtils::Kmeans.run_nmean(collection, avg, cnt, ft, ft2, k, ks)
       return kso if ((ft - fto) / fto) < threshold && fto2 < ft1
     }
     ft2 >= ft1 ? ks1 : ks
@@ -111,7 +115,7 @@ module Enumerable
     diff = ma - mi
     ks   = []
     (1..k).each { |i|
-      ks[i - 1] = mi + (i * (diff / (k + 1)))
+      ks[i - 1] = mi + (i * (diff / (k + 1.0)))
     }
     kso = false
     while ks != kso
