@@ -1,53 +1,66 @@
 module EverydayCliUtils
   module Format
+    def self.build_format_hash(first_chr)
+      {
+          :black  => "#{first_chr}0",
+          :red    => "#{first_chr}1",
+          :green  => "#{first_chr}2",
+          :yellow => "#{first_chr}3",
+          :blue   => "#{first_chr}4",
+          :purple => "#{first_chr}5",
+          :cyan   => "#{first_chr}6",
+          :white  => "#{first_chr}7",
+          :none   => nil,
+      }
+    end
+
     FORMAT_TO_CODE   = {
         :bold      => '1',
         :underline => '4',
     }
-    FG_COLOR_TO_CODE = {
-        :black  => '30',
-        :red    => '31',
-        :green  => '32',
-        :yellow => '33',
-        :blue   => '34',
-        :purple => '35',
-        :cyan   => '36',
-        :white  => '37',
-        :none   => nil,
-    }
-    BG_COLOR_TO_CODE = {
-        :black  => '40',
-        :red    => '41',
-        :green  => '42',
-        :yellow => '43',
-        :blue   => '44',
-        :purple => '45',
-        :cyan   => '46',
-        :white  => '47',
-        :none   => nil,
-    }
+    FG_COLOR_TO_CODE = build_format_hash('3')
+    BG_COLOR_TO_CODE = build_format_hash('4')
 
     def self::format(text, format_code)
       (format_code.nil? || format_code == '') ? text : "\e[#{format_code}m#{text}\e[0m"
     end
 
     def self::build_string(bold, underline, fgcolor, bgcolor)
-      str = ''
-      hit = false
+      str      = ''
+      hit      = false
+      hit, str = handle_bold(bold, hit, str)
+      hit, str = handle_underline(hit, str, underline)
+      hit, str = handle_fg_color(fgcolor, hit, str)
+      handle_bg_color(bgcolor, hit, str)
+    end
+
+    def self.handle_bold(bold, hit, str)
       if bold
         hit = true
         str = FORMAT_TO_CODE[:bold]
       end
+      return hit, str
+    end
+
+    def self.handle_underline(hit, str, underline)
       if underline
         str += ';' if hit
         hit = true
         str += FORMAT_TO_CODE[:underline]
       end
+      return hit, str
+    end
+
+    def self.handle_fg_color(fgcolor, hit, str)
       unless fgcolor.nil? || FG_COLOR_TO_CODE[fgcolor].nil?
         str += ';' if hit
         hit = true
         str += FG_COLOR_TO_CODE[fgcolor]
       end
+      return hit, str
+    end
+
+    def self.handle_bg_color(bgcolor, hit, str)
       unless bgcolor.nil? || BG_COLOR_TO_CODE[bgcolor].nil?
         str += ';' if hit
         str += BG_COLOR_TO_CODE[bgcolor]
