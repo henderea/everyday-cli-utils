@@ -1,4 +1,4 @@
-require_relative '../lib/everyday-cli-utils/format'
+require_relative '../../lib/everyday-cli-utils/format'
 
 describe EverydayCliUtils::Format do
   it 'adds formatting methods to String' do
