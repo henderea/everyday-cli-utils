@@ -123,6 +123,6 @@ class String
   def respond_to?(method)
     name   = method.to_s
     colors = 'black|red|green|yellow|blue|purple|cyan|white|none'
-    !(name =~ /format(_bold)?(_underline)?(?:_fg_(#{colors}))?(?:_bg_(#{colors}))?/).nil?
+    (!(name =~ /format(_bold)?(_underline)?(?:_fg_(#{colors}))?(?:_bg_(#{colors}))?/).nil?) || old_respond_to?(method)
   end
 end

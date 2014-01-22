@@ -115,7 +115,7 @@ module Enumerable
   end
 
   def nmeans(max_k = 10, threshold = 0.05)
-    collection    = self.map(&:to_f)
+    collection    = self.floats
     avg, cnt, ks1 = EverydayCliUtils::Kmeans.nmeans_setup_1(collection)
     return ks1 if cnt == 1
     ft, ft1, ft2, ks = EverydayCliUtils::Kmeans.nmeans_setup_2(collection, avg, cnt, ks1)

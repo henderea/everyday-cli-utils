@@ -11,7 +11,7 @@ module Enumerable
     reduce(:+)
   end
 
-  def product
+  def prod
     reduce(:*)
   end
 
@@ -26,20 +26,8 @@ module Enumerable
     Math.sqrt(su / cnt)
   end
 
-  def aand
-    if count == 0
-      true
-    else
-      all? { |i| i }
-    end
-  end
-
-  def aor
-    if count == 0
-      false
-    else
-      any? { |i| i }
-    end
+  def floats
+    map(&:to_f)
   end
 
   def summap(&block)
@@ -47,15 +35,7 @@ module Enumerable
   end
 
   def productmap(&block)
-    map(&block).product
-  end
-
-  def andmap(&block)
-    map(&block).aand
-  end
-
-  def ormap(&block)
-    map(&block).aor
+    map(&block).prod
   end
 
   def chompall
