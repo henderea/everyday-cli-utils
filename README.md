@@ -1,6 +1,8 @@
 # EverydayCliUtils
 
+[![Gem Version](https://badge.fury.io/rb/everyday-cli-utils.png)](http://badge.fury.io/rb/everyday-cli-utils)
 [![Build Status](https://travis-ci.org/henderea/everyday-cli-utils.png?branch=master)](https://travis-ci.org/henderea/everyday-cli-utils)
+[![Dependency Status](https://gemnasium.com/henderea/everyday-cli-utils.png)](https://gemnasium.com/henderea/everyday-cli-utils)
 [![Code Climate](https://codeclimate.com/github/henderea/everyday-cli-utils.png)](https://codeclimate.com/github/henderea/everyday-cli-utils)
 [![Coverage Status](https://coveralls.io/repos/henderea/everyday-cli-utils/badge.png?branch=master)](https://coveralls.io/r/henderea/everyday-cli-utils?branch=master)
 
