@@ -1,4 +1,5 @@
-require_relative '../../lib/everyday-cli-utils/kmeans'
+require_relative '../../lib/everyday-cli-utils'
+EverydayCliUtils.import :kmeans
 
 describe EverydayCliUtils::Kmeans do
   it 'finds the right clusters in simple data' do

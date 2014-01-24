@@ -1,4 +1,5 @@
-require_relative '../../lib/everyday-cli-utils/format'
+require_relative '../../lib/everyday-cli-utils'
+EverydayCliUtils::import :format
 
 def extract_format(text)
   (text.scan(/#{"\e"}\[(.+?)m([^#{"\e"}]+?)#{"\e"}\[0m|([^#{"\e"}]+)/))[0][0]
