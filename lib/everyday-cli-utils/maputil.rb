@@ -1,48 +1,47 @@
+require_relative 'safe/maputil'
+
 module Enumerable
   def removefalse
-    select { |i| i }
+    EverydayCliUtils::MapUtil.removefalse(self)
   end
 
   def filtermap(&block)
-    map(&block).removefalse
+    EverydayCliUtils::MapUtil.filtermap(self, &block)
   end
 
   def sum
-    reduce(:+)
+    EverydayCliUtils::MapUtil.sum(self)
   end
 
   def prod
-    reduce(:*)
+    EverydayCliUtils::MapUtil.prod(self)
   end
 
   def average
-    sum.to_f / count.to_f
+    EverydayCliUtils::MapUtil.average(self)
   end
 
   def std_dev
-    avg = average
-    cnt = count.to_f
-    su  = summap { |v| (v.to_f - avg.to_f) ** 2 }
-    Math.sqrt(su / cnt)
+    EverydayCliUtils::MapUtil.std_dev(self)
   end
 
   def floats
-    map(&:to_f)
+    EverydayCliUtils::MapUtil.floats(self)
   end
 
   def summap(&block)
-    map(&block).sum
+    EverydayCliUtils::MapUtil.summap(self, &block)
   end
 
   def productmap(&block)
-    map(&block).prod
+    EverydayCliUtils::MapUtil.productmap(self, &block)
   end
 
   def chompall
-    map(&:chomp)
+    EverydayCliUtils::MapUtil.chompall(self)
   end
 
   def join(join_str)
-    map(&:to_s).reduce { |a, b| a << join_str << b }
+    EverydayCliUtils::MapUtil.join(self, join_str)
   end
 end
