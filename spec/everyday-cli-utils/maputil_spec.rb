@@ -1,5 +1,6 @@
 require_relative '../../lib/everyday-cli-utils'
-EverydayCliUtils.import :maputil
+include EverydayCliUtils
+import :maputil
 
 describe 'maputil' do
   it 'provides a shortcut for removing false values from a list' do
