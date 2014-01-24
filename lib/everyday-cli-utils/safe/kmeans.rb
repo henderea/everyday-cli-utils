@@ -1,7 +1,7 @@
 require_relative 'maputil'
 
 module EverydayCliUtils
-  module Kmeans
+  module KmeansUtil
     def self.normal(x, avg, std)
       exp = -(((x - avg) / std) ** 2.0) / 2.0
       ((Math.exp(exp) / (std * Math.sqrt(2.0 * Math::PI))))
@@ -45,52 +45,6 @@ module EverydayCliUtils
       Math.sqrt(tmp)
     end
 
-    def self.nmeans_setup_1(collection)
-      su  = EverydayCliUtils::MapUtil.sum(collection)
-      cnt = collection.count
-      avg = su / cnt
-      ks1 = kmeans(collection, 1)
-      return avg, cnt, ks1
-    end
-
-    def self.nmeans_setup_2(collection, avg, cnt, ks1)
-      cso = get_clusters(collection, ks1)
-      ft1 = f_test2(cso, ks1, cnt)
-      ks  = kmeans(collection, 2)
-      cs  = get_clusters(collection, ks)
-      ft  = f_test(cs, ks, cnt, avg)
-      ft2 = f_test2(cs, ks, cnt)
-      return ft, ft1, ft2, ks
-    end
-
-    def self.run_nmean(collection, avg, cnt, ft, ft2, k, ks)
-      kso  = ks
-      fto  = ft
-      fto2 = ft2
-      ks   = kmeans(collection, k)
-      cs   = get_clusters(collection, ks)
-      ft   = f_test(cs, ks, cnt, avg)
-      ft2  = f_test2(cs, ks, cnt)
-      return ft, ft2, fto, fto2, ks, kso
-    end
-
-    def self.run_nmeans(avg, cnt, collection, ft, ft1, ft2, ks, ks1, max_k, threshold)
-      (3..[max_k, cnt].min).each { |k|
-        ft, ft2, fto, fto2, ks, kso = run_nmean(collection, avg, cnt, ft, ft2, k, ks)
-        return kso if ((ft - fto) / fto) < threshold && fto2 < ft1
-      }
-      ft2 >= ft1 ? ks1 : ks
-    end
-
-    def self.run_kmean(collection, ks)
-      kso      = ks
-      clusters = get_clusters(collection, kso)
-      ks       = []
-      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? kso[key] : (val.sum / val.count) }
-      ks.sort
-      return kso, ks
-    end
-
     def self.get_clusters(collection, means)
       clusters = Array.new(means.count) { Array.new }
       collection.each { |item|
@@ -106,6 +60,60 @@ module EverydayCliUtils
         clusters[cluster] << item
       }
       clusters
+    end
+
+    def self.find_outliers(avg, cs, i, sensitivity)
+      csi = cs[i]
+      std = EverydayCliUtils::MapUtil.std_dev(csi)
+      cnt = csi.count
+      csi.select { |c| (normal(c, avg, std) * cnt) < sensitivity }
+    end
+  end
+  module Kmeans
+    def self.nmeans_setup_1(collection)
+      su  = EverydayCliUtils::MapUtil.sum(collection)
+      cnt = collection.count
+      avg = su / cnt
+      ks1 = kmeans(collection, 1)
+      return avg, cnt, ks1
+    end
+
+    def self.nmeans_setup_2(collection, avg, cnt, ks1)
+      cso = EverydayCliUtils::KmeansUtil.get_clusters(collection, ks1)
+      ft1 = EverydayCliUtils::KmeansUtil.f_test2(cso, ks1, cnt)
+      ks  = kmeans(collection, 2)
+      cs  = EverydayCliUtils::KmeansUtil.get_clusters(collection, ks)
+      ft  = EverydayCliUtils::KmeansUtil.f_test(cs, ks, cnt, avg)
+      ft2 = EverydayCliUtils::KmeansUtil.f_test2(cs, ks, cnt)
+      return ft, ft1, ft2, ks
+    end
+
+    def self.run_nmean(collection, avg, cnt, ft, ft2, k, ks)
+      kso  = ks
+      fto  = ft
+      fto2 = ft2
+      ks   = kmeans(collection, k)
+      cs   = EverydayCliUtils::KmeansUtil.get_clusters(collection, ks)
+      ft   = EverydayCliUtils::KmeansUtil.f_test(cs, ks, cnt, avg)
+      ft2  = EverydayCliUtils::KmeansUtil.f_test2(cs, ks, cnt)
+      return ft, ft2, fto, fto2, ks, kso
+    end
+
+    def self.run_nmeans(avg, cnt, collection, ft, ft1, ft2, ks, ks1, max_k, threshold)
+      (3..[max_k, cnt].min).each { |k|
+        ft, ft2, fto, fto2, ks, kso = run_nmean(collection, avg, cnt, ft, ft2, k, ks)
+        return kso if ((ft - fto) / fto) < threshold && fto2 < ft1
+      }
+      ft2 >= ft1 ? ks1 : ks
+    end
+
+    def self.run_kmean(collection, ks)
+      kso      = ks
+      clusters = EverydayCliUtils::KmeansUtil.get_clusters(collection, kso)
+      ks       = []
+      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? kso[key] : (val.sum / val.count) }
+      ks.sort
+      return kso, ks
     end
 
     def self.kmeans(collection, k)
@@ -129,20 +137,13 @@ module EverydayCliUtils
       run_nmeans(avg, cnt, collection, ft, ft1, ft2, ks, ks1, max_k, threshold)
     end
 
-    def self.find_outliers(avg, cs, i, sensitivity)
-      csi = cs[i]
-      std = EverydayCliUtils::MapUtil.std_dev(csi)
-      cnt = csi.count
-      csi.select { |c| (normal(c, avg, std) * cnt) < sensitivity }
-    end
-
     def self.outliers(collection, sensitivity = 0.5, k = nil)
       ks = k.nil? ? nmeans(collection) : kmeans(collection, k)
-      cs = get_clusters(collection, ks)
+      cs = EverydayCliUtils::KmeansUtil.get_clusters(collection, ks)
 
       outliers = []
 
-      ks.each_with_index { |avg, i| outliers += find_outliers(avg, cs, i, sensitivity) }
+      ks.each_with_index { |avg, i| outliers += EverydayCliUtils::KmeansUtil.find_outliers(avg, cs, i, sensitivity) }
       outliers
     end
   end
