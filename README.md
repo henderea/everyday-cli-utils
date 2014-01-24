@@ -37,6 +37,20 @@ import :format, :option
 
 You can also use `EverydayCliUtils::import :format, :option` if you don't want to include the module.
 
+The possible values to pass to `import` are:
+
+* `:ask`
+* `:format`
+* `:format_safe`
+* `:histogram`
+* `:histogram_safe`
+* `:kmeans`
+* `:kmeans_safe`
+* `:maputil`
+* `:maputil_safe`
+* `:mycurses`
+* `:option`
+
 Some of the utilities normally modify built-in classes, like `String` and `Enumerable`.  For utilities that do this, I have included a "safe" version that does not modify the built-in classes.
 
 Here are the utilities:
