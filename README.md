@@ -59,11 +59,11 @@ Here are the utilities:
 Encapsulates the methods for prompting the user to select from a set of options.
 
 ####Ask::ask(question, options, &block)
-Prompts the user to select from a set of options.  It calls `block` with the option selected.  It is designed to take an array of labels for the `options` parameter and will return the label selected rather than the index selected.
+Prompts the user to select from a set of options.  It calls `block` with the option selected.  It is designed to take an array of symbols for the `options` parameter and will return the symbol selected rather than the index selected.
 
 ######Parameters
 * `question`: The question to show at the beginning of the prompt
-* `options`: The array of options.  These are automatically numbered from `1` to `options.count`.  It is intended to be an array of labels, but that is not required.
+* `options`: The array of options.  These are automatically numbered from `1` to `options.count`.  It is intended to be an array of symbols, but that is not required.
 * `&block`: The block to call with the result of the prompting.  It takes a single parameter which is the option selected (the value, not the index).
 
 ####Ask::hash\_to\_options(hash, extra = [])
