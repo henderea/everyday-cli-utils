@@ -103,5 +103,19 @@ module EverydayCliUtils
     def self::boldunderline(text, fgcolor = nil, bgcolor = nil)
       self::format(text, self::build_string(true, true, fgcolor, bgcolor))
     end
+
+    def self::format_all(text)
+      colors    = 'bk|rd|gr|yw|bl|pu|cy|wh|no'
+      color_map = { 'bk' => :black, 'rd' => :red, 'gr' => :green, 'yw' => :yellow, 'bl' => :blue, 'pu' => :purple, 'cy' => :cyan, 'wh' => :white, 'no' => :none }
+      regex     = /\{(.+?)\}\((bd)?(ul)?(?:f(#{colors}))?(?:b(#{colors}))?\)/
+      text.gsub(regex) { |m|
+        txt       = $1
+        bold      = !$2.nil?
+        underline = !$3.nil?
+        fg        = $4.nil? ? nil : color_map[$4]
+        bg        = $5.nil? ? nil : color_map[$5]
+        format(txt, build_string(bold, underline, fg, bg))
+      }
+    end
   end
 end

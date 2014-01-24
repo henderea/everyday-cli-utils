@@ -61,4 +61,10 @@ describe EverydayCliUtils::Format do
     str.respond_to?(:hi).should be_false
     expect { str.hi }.to raise_error(NameError)
   end
+
+  it 'allows shorthand for formatting in-string' do
+    str      = 'abc {def}(bdulfywbgr) ghi {jkl}(ulfyw) mno'
+    expected = "abc #{'def'.format_bold_underline_fg_yellow_bg_green} ghi #{'jkl'.format_underline_fg_yellow} mno"
+    str.format_all.should eq expected
+  end
 end

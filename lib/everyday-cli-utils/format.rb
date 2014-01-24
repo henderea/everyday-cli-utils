@@ -19,4 +19,8 @@ class String
     colors = 'black|red|green|yellow|blue|purple|cyan|white|none'
     (!(name =~ /format(_bold)?(_underline)?(?:_fg_(#{colors}))?(?:_bg_(#{colors}))?/).nil?) || old_respond_to?(method)
   end
+
+  def format_all
+    EverydayCliUtils::Format::format_all(self)
+  end
 end

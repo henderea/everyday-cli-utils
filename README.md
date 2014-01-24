@@ -140,6 +140,21 @@ Here is an example:
 
 This will return a string that uses ANSI escape sequences to make the word 'hi' bold and underlined, with a foreground color of yellow and a background color of green.  You can use any color and make any format supported by the `EverydayCliUtils::Format` module.  All 4 parts of the method (not counting the required `format` start) are optional, so you can do something like `'hi'.format_underline_bg_white`, but you have to keep the same order, so you can't do `'hi'.format_underline_bold_bg_white_fg_black`.
 
+As of version 0.4.0, there is now a `String#format_all` method that will allow you to put formatting in the string instead of having to call methods in the middle of a string.  Here is an example:
+
+```ruby
+'abc {def}(bdulfywbgr) ghi {jkl}(ulfyw) mno'.format_all
+```
+
+which is equivalent to
+```ruby
+"abc #{'def'.format_bold_underline_fg_yellow_bg_green} ghi #{'jkl'.format_underline_fg_yellow} mno"
+```
+
+Much shorter, right?
+
+There is also a static version of the method in `EverydayCliUtils::Format` that takes the string as a parameter, for those of you that use the "safe" version.
+
 ###EverydayCliUtils::Histogram
 
 Create a text-based histogram.  This is an extension to the `Enumerable` module, unless you import `:histogram_safe`, in which case you can use the static methods in `EverydayCliUtils::Histogram`, with an added first parameter of the collection.
