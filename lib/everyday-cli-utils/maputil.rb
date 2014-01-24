@@ -45,3 +45,9 @@ module Enumerable
     EverydayCliUtils::MapUtil.join(self, join_str)
   end
 end
+
+class Hash
+  def expand
+    EverydayCliUtils::MapUtil.expand(self)
+  end
+end

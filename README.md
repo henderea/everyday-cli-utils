@@ -228,6 +228,9 @@ Return the data joined into a single string with `join_str` in between the eleme
 ######Parameters
 * `join_str`: The string to use for joining the elements together.
 
+####Hash.expand
+Takes a shorthand hash (like `{ [:a, :b, :c, :d] => '1-4', e: '5' }`) and turns it into a full hash (like `{ a: '1-4', b: '1-4', c: '1-4', d: '1-4', :e => '5' }`)
+
 ###EverydayCliUtils::MyCurses
 
 Encapsulates the code for dealing with the curses library.

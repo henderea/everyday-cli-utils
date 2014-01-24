@@ -61,4 +61,11 @@ describe 'maputil' do
     joined = list.join('-')
     joined.should eq 'a-b-c-d-e-f'
   end
+
+  it 'provides a shortcut for making hashes with multiple keys that have the same value' do
+    hash     = { [:a, :b, :c, :d] => '1-4', :e => '5' }
+    expanded = hash.expand
+    expected = { a: '1-4', b: '1-4', c: '1-4', d: '1-4', :e => '5' }
+    expanded.should eq expected
+  end
 end

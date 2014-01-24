@@ -46,5 +46,17 @@ module EverydayCliUtils
     def self.join(collection, join_str)
       collection.map(&:to_s).reduce { |a, b| a << join_str << b }
     end
+
+    def self.expand(hash)
+      rval = {}
+      hash.each { |v|
+        if v[0].is_a? Array
+          v[0].each { |v2| rval[v2] = v[1] }
+        else
+          rval[v[0]] = v[1]
+        end
+      }
+      rval
+    end
   end
 end
