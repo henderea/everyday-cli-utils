@@ -3,6 +3,10 @@ require_relative 'everyday-cli-utils/version'
 module EverydayCliUtils
   AVAILABLE_MODULES = [:ask, :format, :format_safe, :histogram, :histogram_safe, :kmeans, :kmeans_safe, :maputil, :maputil_safe, :mycurses, :option]
 
+  def import(*names)
+    EverydayCliUtils.import(*names)
+  end
+
   def self.import(*names)
     names.each { |name|
       case (name)
