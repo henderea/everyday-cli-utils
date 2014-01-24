@@ -22,14 +22,13 @@ module EverydayCliUtils
 
     def self.f_test_uv(clusters, cnt, cnt2, means)
       uv = 0.0
-      (0...means.count).each { |i|
-        unless clusters[i].empty?
-          (0...clusters[i].count).each { |j|
-            uv += (clusters[i][j] - means[i]) * (clusters[i][j] - means[i])
-          }
-        end
-      }
+      (0...means.count).each { |i| uv = f_test_uvi(clusters, i, means, uv) }
       uv / (cnt - cnt2)
+    end
+
+    def self.f_test_uvi(clusters, i, means, uv)
+      (0...clusters[i].count).each { |j| uv += (clusters[i][j] - means[i]) * (clusters[i][j] - means[i]) } unless clusters[i].empty?
+      uv
     end
 
     def self.f_test2(clusters, means, cnt)
@@ -41,9 +40,7 @@ module EverydayCliUtils
 
     def self.f_test2_calc(clusters, i, means, uv)
       tmp = 0.0
-      (0...clusters[i].count).each { |j|
-        tmp += (clusters[i][j] - means[i]) ** 2.0
-      }
+      (0...clusters[i].count).each { |j| tmp += (clusters[i][j] - means[i]) ** 2.0 }
       tmp /= clusters[i].count
       Math.sqrt(tmp)
     end
