@@ -23,4 +23,8 @@ class String
   def format_all
     EverydayCliUtils::Format::format_all(self)
   end
+
+  def mycenter(len, char = ' ')
+    EverydayCliUtils::Format::mycenter(self, len, char)
+  end
 end

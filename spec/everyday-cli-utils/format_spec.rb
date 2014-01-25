@@ -67,4 +67,50 @@ describe EverydayCliUtils::Format do
     expected = "abc #{'def'.format_bold_underline_fg_yellow_bg_green} ghi #{'jkl'.format_underline_fg_yellow} mno"
     str.format_all.should eq expected
   end
+
+  it 'allows centering a formatted string' do
+    str                   = 'abc'
+    str2                  = str.center(10)
+    strf                  = str.format_bold_underline_fg_yellow_bg_green
+    strf2                 = strf.mycenter(10)
+    leading_whitespace    = str2.length - str2.lstrip.length
+    trailing_whitespace   = str2.length - str2.rstrip.length
+    leading_whitespace_f  = strf2.length - strf2.lstrip.length
+    trailing_whitespace_f = strf2.length - strf2.rstrip.length
+    leading_whitespace_f.should eq leading_whitespace
+    trailing_whitespace_f.should eq trailing_whitespace
+
+    str                   = 'abcd'
+    str2                  = str.center(10)
+    strf                  = str.format_bold_underline_fg_yellow_bg_green
+    strf2                 = strf.mycenter(10)
+    leading_whitespace    = str2.length - str2.lstrip.length
+    trailing_whitespace   = str2.length - str2.rstrip.length
+    leading_whitespace_f  = strf2.length - strf2.lstrip.length
+    trailing_whitespace_f = strf2.length - strf2.rstrip.length
+    leading_whitespace_f.should eq leading_whitespace
+    trailing_whitespace_f.should eq trailing_whitespace
+
+    str                   = 'abc'
+    str2                  = str.center(11)
+    strf                  = str.format_bold_underline_fg_yellow_bg_green
+    strf2                 = strf.mycenter(11)
+    leading_whitespace    = str2.length - str2.lstrip.length
+    trailing_whitespace   = str2.length - str2.rstrip.length
+    leading_whitespace_f  = strf2.length - strf2.lstrip.length
+    trailing_whitespace_f = strf2.length - strf2.rstrip.length
+    leading_whitespace_f.should eq leading_whitespace
+    trailing_whitespace_f.should eq trailing_whitespace
+
+    str                   = 'abcd'
+    str2                  = str.center(11)
+    strf                  = str.format_bold_underline_fg_yellow_bg_green
+    strf2                 = strf.mycenter(11)
+    leading_whitespace    = str2.length - str2.lstrip.length
+    trailing_whitespace   = str2.length - str2.rstrip.length
+    leading_whitespace_f  = strf2.length - strf2.lstrip.length
+    trailing_whitespace_f = strf2.length - strf2.rstrip.length
+    leading_whitespace_f.should eq leading_whitespace
+    trailing_whitespace_f.should eq trailing_whitespace
+  end
 end

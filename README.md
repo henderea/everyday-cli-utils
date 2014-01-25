@@ -155,6 +155,10 @@ Much shorter, right?
 
 There is also a static version of the method in `EverydayCliUtils::Format` that takes the string as a parameter, for those of you that use the "safe" version.
 
+As of version 0.5.0, there is now a `String#mycenter` method that takes a length and an optional character (defaults to `' '`) and centers the string using that character and length.  This is designed to mimic the built-in `String#center` method, but add support for handling the formatting, since formatting is done by adding non-printing characters to the string.  If you were to use the built-in `center` method, you would be adding too little padding.
+
+There is also a static version of the method in `EverydayCliUtils::Format` that takes the string as a parameter, for those of you that use the "safe" version.
+
 ###EverydayCliUtils::Histogram
 
 Create a text-based histogram.  This is an extension to the `Enumerable` module, unless you import `:histogram_safe`, in which case you can use the static methods in `EverydayCliUtils::Histogram`, with an added first parameter of the collection.

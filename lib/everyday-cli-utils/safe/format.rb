@@ -117,5 +117,13 @@ module EverydayCliUtils
         format(txt, build_string(bold, underline, fg, bg))
       }
     end
+
+    def self.mycenter(str, len, char = ' ')
+      tlen = str.gsub(%r{\e\[.*?m}, '').length
+      return str if tlen >= len
+      b = ((len - tlen) / 2.0).floor
+      a = len - tlen - b
+      "#{char * b}#{str}#{char * a}"
+    end
   end
 end
