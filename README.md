@@ -6,7 +6,7 @@
 [![Code Climate](https://codeclimate.com/github/henderea/everyday-cli-utils.png)](https://codeclimate.com/github/henderea/everyday-cli-utils)
 [![Coverage Status](https://coveralls.io/repos/henderea/everyday-cli-utils/badge.png?branch=master)](https://coveralls.io/r/henderea/everyday-cli-utils?branch=master)
 
-A set of CLI and general utilities.
+A few CLI and general utilities.  Includes a numbered-menu select loop utility, a ANSI formatting escape code handler, a text-based histogram maker, k-means and n-means (k-means with minimum optimal k) calculators, various collection utility methods, a Curses wrapper with up/down scrolling and more handled easily, and a utility for using OptionParser with less code.
 
 ## Issue Tracking
 Please use <https://everydayprogramminggenius.atlassian.net/browse/ECU> for issue tracking.
