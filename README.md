@@ -336,6 +336,27 @@ Add a parameterized option to the `OptionParser`.  It will set the specified opt
 * `settings`: additional optional options
     * `type: <data type>`: specify a type (such as `Integer` or `Float`) for the option parser to try to parse the parameter to (default is `String` (no parsing))
     * `append: true|false`: true to append the parameter to a list (for parameterized options that can occur multiple times), false or omitted to just set it to the parameter
+    
+### EverydayCliUtils::OptionUtil
+
+As of version 0.6.0, there is a new way to use the option package.  See the below example:
+
+```ruby
+class MyOptions
+  extend EverydayCliUtil::OptionUtil
+  
+  option :opt1, ['-1', '--opt-1']
+  option_with_param :opt2, ['-2', '--opt-2 PARAM']
+end
+
+MyOptions.parse!
+
+opts = MyOptions.options
+```
+
+The two methods shown above are the same as the ones in `EverydayCliUtils::Option`, but renamed to be shorter, and with the `opt_name` and `names` parameters switched around.  Also, the options hash and `OptionParser` instance are handled internally, so you don't have to pass those in.  There are read-only accessors for both of them.
+
+Besides the different look, there are also improvements.  `EverydayCliUtils::OptionUtil.default_settings(settings = {})` is a new method that you can use to set the default values of the settings that you can pass to `option` and `option_with_param`.  Also, since this utility manages the options hash for you, in order to provide you with a way to override the defaults (`false` for boolean options, `nil` for non-appending parameter options, and `[]` for appending parameter options (don't change this)) by using `EverydayCliUtils::OptionUtil.default_options(options = {})`.
 
 ## Contributing
 
