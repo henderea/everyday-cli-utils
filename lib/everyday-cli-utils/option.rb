@@ -45,11 +45,7 @@ module EverydayCliUtils
       settings[:type]    = @default_settings[:type] unless settings.has_key?(:type) || !@default_settings.has_key?(:type)
       @options[opt_name] = settings[:append] ? [] : nil
       @opts.on(*names, settings[:type] || String) { |param|
-        if settings[:append]
-          @options[opt_name] << param
-        else
-          @options[opt_name] = param
-        end
+        settings[:append] ? @options[opt_name] << param : @options[opt_name] = param
         yield if block_given?
       }
     end
