@@ -345,7 +345,11 @@ As of version 0.6.0, there is a new way to use the option package.  See the belo
 class MyOptions
   extend EverydayCliUtil::OptionUtil
   
+  banner 'test app' # <-- version 1.0.0 and up
+  
   defaults_option 'defaults.yaml', ['-d', '--set-defaults'] # <-- version 0.7.0 and up
+  
+  help_option ['-h', '--help'], desc: 'display this help' # <-- version 1.0.0 and up
   
   option :opt1, ['-1', '--opt-1']
   option_with_param :opt2, ['-2', '--opt-2 PARAM']
@@ -360,7 +364,9 @@ The two methods shown above are the same as the ones in `EverydayCliUtils::Optio
 
 Besides the different look, there are also improvements.  `EverydayCliUtils::OptionUtil.default_settings(settings = {})` is a new method that you can use to set the default values of the settings that you can pass to `option` and `option_with_param`.  Also, since this utility manages the options hash for you, in order to provide you with a way to override the defaults (`false` for boolean options, `nil` for non-appending parameter options, and `[]` for appending parameter options (don't change this)) by using `EverydayCliUtils::OptionUtil.default_options(options = {})`.
 
-As of version 0.7.0, there is now built-in handling for setting and retrieving default options.  Use `EverydayCliUtils::OptionUtil.defaults_option`, which takes the file name (relative or absolute, it passes through `File.expand_path` before being used) as the first parameter and the list of option flag names as the second parameter.  It will automatically load the file if it exists, and if the user specifies one of the flags you pass to this method, after parsing the options, it will automatically store them in the place you specified.
+As of version 0.7.0, there is now built-in handling for setting and retrieving default options.  Use `EverydayCliUtils::OptionUtil.defaults_option`, which takes the file name (relative or absolute, it passes through `File.expand_path` before being used) as the first parameter and the list of option flag names as the second parameter.  It will automatically load the file if it exists, and if the user specifies one of the flags you pass to this method, after parsing the options, it will automatically store them in the place you specified.  Unless you specify the hash option `exit_on_save: false`, it will exit after it saves the options.
+
+As of version 1.0.0, there is now support for the help display in `OptionParser`.  You can now provide a `desc:` hash option to the option creating methods (even pre-made ones like `defaults_option` and `help_option`).  You can set the banner with the `EverydayCliUtils::OptionUtil.banner` method, which takes the banner string as its parameter.  You can get the help string with `EverydayCliUtils::OptionUtil.help` or `EverydayCliUtils::OptionUtil.to_s`, or you can handle it with `EverydayCliUtils::OptionUtil.help_option`, which takes an array of the names and an optional `desc:` hash option.  When the user specifies one of those options, the utility will automatically print out the help and exit (unless you specify the hash option `exit_on_print: false`).
 
 ## Contributing
 

@@ -55,6 +55,22 @@ describe EverydayCliUtils::OptionUtil do
     opt.options.should eq expected
   end
 
+  it 'adds the parameter into a name if it is missing from all' do
+    expected = { opt1: 'hi' }
+    clean    = { opt1: nil }
+    opt      = Option1.new
+    opt.option_with_param :opt1, %w(-1 --opt-1)
+    opt.options.should eq clean
+    opt.default_options opt1: nil
+    opt.options.should eq clean
+    opt.parse!(%w(-1 hi))
+    opt.options.should eq expected
+    opt.default_options opt1: nil
+    opt.options.should eq clean
+    opt.parse!(%w(--opt-1 hi))
+    opt.options.should eq expected
+  end
+
   it 'supports adding an option with a parameter and type' do
     expected = { opt1: 1 }
     clean    = { opt1: nil }
@@ -152,5 +168,19 @@ describe EverydayCliUtils::OptionUtil do
     opt.options.should eq clean
     opt.parse!(%w(--opt-1 hi -1 bye))
     opt.options.should eq expected
+  end
+
+  it 'supports setting a banner and description' do
+    opt = Option1.new
+    opt.banner 'option1'
+    opt.option :opt1, %w(-1 --opt-1), desc: 'option #1'
+    opt.option_with_param :opt2, %w(-2 --opt-2), desc: 'option #2 (takes parameter)'
+    opt.defaults_option 'defaults.yaml', %w(-0 --set-defaults), desc: 'set defaults'
+    expected = 'option1
+    -1, --opt-1                      option #1
+    -2, --opt-2 PARAM                option #2 (takes parameter)
+    -0, --set-defaults               set defaults
+'
+    opt.to_s.should eq expected
   end
 end
