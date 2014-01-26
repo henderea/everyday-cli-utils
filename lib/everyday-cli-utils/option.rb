@@ -1,3 +1,6 @@
+require 'optparse'
+require 'yaml'
+
 module EverydayCliUtils
   class Option
     def self.add_option(options, opts, names, opt_name, settings = {})
@@ -51,6 +54,14 @@ module EverydayCliUtils
       }
     end
 
+    def defaults_option(file_path, names, exit_on_save = true)
+      @opts          ||= OptionParser.new
+      @set_defaults  = false
+      @defaults_file = File.expand_path(file_path)
+      @exit_on_save  = exit_on_save
+      @opts.on(*names) { @set_defaults = true }
+    end
+
     def default_settings(settings = {})
       @default_settings = settings
     end
@@ -60,7 +71,15 @@ module EverydayCliUtils
     end
 
     def parse!(argv = ARGV)
+      default_options YAML::load_file(@defaults_file) unless @defaults_file.nil? || !File.exist?(@defaults_file)
       @opts.parse!(argv)
+      if @set_defaults
+        IO.write(@defaults_file, @options.to_yaml)
+        if @exit_on_save
+          puts 'Defaults set'
+          exit 0
+        end
+      end
     end
   end
 end
