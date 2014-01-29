@@ -6,7 +6,9 @@
 [![Code Climate](https://codeclimate.com/github/henderea/everyday-cli-utils.png)](https://codeclimate.com/github/henderea/everyday-cli-utils)
 [![Coverage Status](https://coveralls.io/repos/henderea/everyday-cli-utils/badge.png?branch=master)](https://coveralls.io/r/henderea/everyday-cli-utils?branch=master)
 
-A few CLI and general utilities.  Includes a numbered-menu select loop utility, a ANSI formatting escape code handler, a text-based histogram maker, k-means and n-means (k-means with minimum optimal k) calculators, various collection utility methods, a Curses wrapper with up/down scrolling and more handled easily, and a utility for using OptionParser with less code.
+A few CLI and general utilities.  Includes a numbered-menu select loop utility, a ANSI formatting escape code handler, a text-based histogram maker, k-means and n-means (k-means with minimum optimal k) calculators, various collection utility methods, and a utility for using OptionParser with less code.
+
+Note: The curses utility has been moved to the `everyday-curses` gem
 
 ## Issue Tracking
 Please use <https://everydayprogramminggenius.atlassian.net/browse/ECU> for issue tracking.
@@ -249,66 +251,6 @@ Return the data joined into a single string with `join_str` in between the eleme
 
 ####Hash.expand
 Takes a shorthand hash (like `{ [:a, :b, :c, :d] => '1-4', e: '5' }`) and turns it into a full hash (like `{ a: '1-4', b: '1-4', c: '1-4', d: '1-4', :e => '5' }`)
-
-###EverydayCliUtils::MyCurses
-
-Encapsulates the code for dealing with the curses library.
-
-###Fields:
-####MyCurses.headers
-An array storing the header lines that will be printed out with `MyCurses.myprints`.
-
-####MyCurses.bodies
-An array storing the body lines that will be printed out with `MyCurses.myprints`.
-
-####MyCurses.footers
-An array storing the footer lines that will be printed out with `MyCurses.myprints`.
-
-###Methods:
-
-####MyCurses.new(use\_curses, linesh, linesf)
-Initializes the class and sets the basic options.
-
-######Parameters
-* `use_curses`: `true` to use curses, `false` to use `puts`
-* `linesh`: the number of header lines
-* `linesf`: the number of footer lines
-
-####MyCurses.clear
-Clear the `headers`, `bodies`, and `footers` arrays
-
-####MyCurses.myprints
-Print out all of the lines stored in the `headers`, `bodies`, and `footers` arrays.  If `use_curses` is `true`, it will use curses and allow for scrolling.  Otherwise, it will just print out all of the lines with `puts`
-
-####MyCurses.read\_ch
-Update the character from the body pad.
-
-####MyCurses.clear\_ch
-Clear out any newline, ENTER, UP, or DOWN characters from the queue.
-
-####MyCurses.scroll\_iteration
-Update the display (including doing any scrolling) and read the next character.
-
-####MyCurses.header\_live\_append(str)
-Append `str` to the header pad immediately and update it.  Does not modify the `headers` array.
-
-######Parameters
-* `str`: the string to append
-
-####MyCurses.body\_live\_append(str)
-Append `str` to the body pad immediately and update it.  Does not modify the `bodies` array.
-
-######Parameters
-* `str`: the string to append
-
-####MyCurses.footer\_live\_append(str)
-Append `str` to the footer pad immediately and update it.  Does not modify the `footers` array.
-
-######Parameters
-* `str`: the string to append
-
-####MyCurses.dispose
-Close out the curses screen if curses was used.
 
 ###EverydayCliUtils::Option
 

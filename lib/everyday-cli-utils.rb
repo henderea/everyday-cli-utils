@@ -1,7 +1,7 @@
 require_relative 'everyday-cli-utils/version'
 
 module EverydayCliUtils
-  AVAILABLE_MODULES  = [:ask, :format, :format_safe, :histogram, :histogram_safe, :kmeans, :kmeans_safe, :maputil, :maputil_safe, :mycurses, :option]
+  AVAILABLE_MODULES  = [:ask, :format, :format_safe, :histogram, :histogram_safe, :kmeans, :kmeans_safe, :maputil, :maputil_safe, :option]
   MODULE_TO_RELATIVE = {
       ask:            'everyday-cli-utils/ask',
       format:         'everyday-cli-utils/format',
@@ -12,7 +12,6 @@ module EverydayCliUtils
       kmeans_safe:    'everyday-cli-utils/safe/kmeans',
       maputil:        'everyday-cli-utils/maputil',
       maputil_safe:   'everyday-cli-utils/safe/maputil',
-      mycurses:       'everyday-cli-utils/mycurses',
       option:         'everyday-cli-utils/option'
   }
 
