@@ -157,9 +157,37 @@ Much shorter, right?
 
 There is also a static version of the method in `EverydayCliUtils::Format` that takes the string as a parameter, for those of you that use the "safe" version.
 
+Here's the two-letter color keys:
+
+```ruby
+{
+  'bk' => :black,
+  'rd' => :red,
+  'gr' => :green,
+  'yw' => :yellow,
+  'bl' => :blue,
+  'pu' => :purple,
+  'cy' => :cyan,
+  'wh' => :white,
+  'no' => :none
+}
+```
+
 As of version 0.5.0, there is now a `String#mycenter` method that takes a length and an optional character (defaults to `' '`) and centers the string using that character and length.  This is designed to mimic the built-in `String#center` method, but add support for handling the formatting, since formatting is done by adding non-printing characters to the string.  If you were to use the built-in `center` method, you would be adding too little padding.
 
 There is also a static version of the method in `EverydayCliUtils::Format` that takes the string as a parameter, for those of you that use the "safe" version.
+
+As of version 1.2.0, there is now support for using color profiles in `String#format_all`.  Here's an example:
+
+```ruby
+EverydayCliUtils::Format.color_profile(:p1, bold: true, underline: true, fgcolor: :yellow, bgcolor: :green)
+EverydayCliUtils::Format.color_profile(:p2, underline: true, fgcolor: :yellow)
+'abc {def}(:p1) ghi {jkl}(:p2) mno'.format_all
+```
+
+This gives the same result as the earlier example.  With color profiles, you define it once and can use it as many times as you want.  So if you have an application that lets the user choose colors for certain things, you can define a color profile with the chosen colors once and re-use it as many times as you want.
+
+Please note that if you define a second color profile with the same id, it will overwrite the first one.
 
 ###EverydayCliUtils::Histogram
 

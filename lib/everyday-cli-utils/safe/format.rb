@@ -108,14 +108,15 @@ module EverydayCliUtils
       colors    = 'bk|rd|gr|yw|bl|pu|cy|wh|no'
       color_map = { 'bk' => :black, 'rd' => :red, 'gr' => :green, 'yw' => :yellow, 'bl' => :blue, 'pu' => :purple, 'cy' => :cyan, 'wh' => :white, 'no' => :none }
       regex     = /\{(.+?)\}\((bd)?(ul)?(?:f(#{colors}))?(?:b(#{colors}))?\)/
-      text.gsub(regex) { |m|
+      regex2    = /\{(.+?)\}\(:(.+?)\)/
+      text.gsub(regex) { |_|
         txt       = $1
         bold      = !$2.nil?
         underline = !$3.nil?
         fg        = $4.nil? ? nil : color_map[$4]
         bg        = $5.nil? ? nil : color_map[$5]
         format(txt, build_string(bold, underline, fg, bg))
-      }
+      }.gsub(regex2) { |_| format($1, color_profile_string($2.to_sym)) }
     end
 
     def self.mycenter(str, len, char = ' ')
@@ -125,5 +126,19 @@ module EverydayCliUtils
       a = len - tlen - b
       "#{char * b}#{str}#{char * a}"
     end
+
+    ColorProfile = Struct.new(:bold, :underline, :fgcolor, :bgcolor)
+
+    def self.color_profile(id, options = {})
+      @color_profiles     ||= {}
+      @color_profiles[id] = ColorProfile.new(options[:bold], options[:underline], options[:fgcolor] || nil, options[:bgcolor] || nil)
+    end
+
+    def self.color_profile_string(id)
+      @color_profiles ||= {}
+      profile         = @color_profiles[id]
+      profile.nil? ? nil : self::build_string(profile.bold, profile.underline, profile.fgcolor, profile.bgcolor)
+    end
   end
+
 end

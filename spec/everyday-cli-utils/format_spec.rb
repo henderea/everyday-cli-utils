@@ -68,6 +68,14 @@ describe EverydayCliUtils::Format do
     str.format_all.should eq expected
   end
 
+  it 'allows color profiles for use in shorthand for formatting in-string' do
+    EverydayCliUtils::Format.color_profile(:p1, bold: true, underline: true, fgcolor: :yellow, bgcolor: :green)
+    EverydayCliUtils::Format.color_profile(:p2, underline: true, fgcolor: :yellow)
+    str      = 'abc {def}(:p1) ghi {jkl}(:p2) mno'
+    expected = "abc #{'def'.format_bold_underline_fg_yellow_bg_green} ghi #{'jkl'.format_underline_fg_yellow} mno"
+    str.format_all.should eq expected
+  end
+
   it 'allows centering a formatted string' do
     str                   = 'abc'
     str2                  = str.center(10)
