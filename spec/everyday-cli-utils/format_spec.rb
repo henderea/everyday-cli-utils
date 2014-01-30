@@ -76,6 +76,20 @@ describe EverydayCliUtils::Format do
     str.format_all.should eq expected
   end
 
+  it 'allows removing shorthand for formatting in-string' do
+    str      = 'abc {def}(bdulfywbgr) ghi {jkl}(ulfyw) mno'
+    expected = 'abc def ghi jkl mno'
+    str.remove_format.should eq expected
+  end
+
+  it 'allows removing color profile shorthand for formatting in-string' do
+    EverydayCliUtils::Format.color_profile(:p1, bold: true, underline: true, fgcolor: :yellow, bgcolor: :green)
+    EverydayCliUtils::Format.color_profile(:p2, underline: true, fgcolor: :yellow)
+    str      = 'abc {def}(:p1) ghi {jkl}(:p2) mno'
+    expected = 'abc def ghi jkl mno'
+    str.remove_format.should eq expected
+  end
+
   it 'allows centering a formatted string' do
     str                   = 'abc'
     str2                  = str.center(10)

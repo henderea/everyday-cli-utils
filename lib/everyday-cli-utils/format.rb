@@ -24,6 +24,10 @@ class String
     EverydayCliUtils::Format::format_all(self)
   end
 
+  def remove_format
+    EverydayCliUtils::Format::remove_format(self)
+  end
+
   def mycenter(len, char = ' ')
     EverydayCliUtils::Format::mycenter(self, len, char)
   end

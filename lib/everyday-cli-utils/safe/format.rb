@@ -119,6 +119,13 @@ module EverydayCliUtils
       }.gsub(regex2) { |_| format($1, color_profile_string($2.to_sym)) }
     end
 
+    def self::remove_format(text)
+      colors = 'bk|rd|gr|yw|bl|pu|cy|wh|no'
+      regex  = /\{(.+?)\}\((bd)?(ul)?(?:f(#{colors}))?(?:b(#{colors}))?\)/
+      regex2 = /\{(.+?)\}\(:(.+?)\)/
+      text.gsub(regex, '\1').gsub(regex2, '\1') {}
+    end
+
     def self.mycenter(str, len, char = ' ')
       tlen = str.gsub(%r{\e\[.*?m}, '').length
       return str if tlen >= len
