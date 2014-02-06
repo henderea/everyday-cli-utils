@@ -84,13 +84,19 @@ module EverydayCliUtils
     end
 
     def help
-      @opts ||= OptionParser.new
-      @opts.help
+      @opts     ||= OptionParser.new
+      @help_str ||= nil
+      @help_str.nil? ? @opts.help : @help_str
     end
 
     def to_s
-      @opts ||= OptionParser.new
-      @opts.to_s
+      @opts     ||= OptionParser.new
+      @help_str ||= nil
+      @help_str.nil? ? @opts.to_s : @help_str
+    end
+
+    def help_str=(str)
+      @help_str = str
     end
 
     def parse!(argv = ARGV)

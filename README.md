@@ -338,6 +338,8 @@ As of version 0.7.0, there is now built-in handling for setting and retrieving d
 
 As of version 1.0.0, there is now support for the help display in `OptionParser`.  You can now provide a `desc:` hash option to the option creating methods (even pre-made ones like `defaults_option` and `help_option`).  You can set the banner with the `EverydayCliUtils::OptionUtil.banner` method, which takes the banner string as its parameter.  You can get the help string with `EverydayCliUtils::OptionUtil.help` or `EverydayCliUtils::OptionUtil.to_s`, or you can handle it with `EverydayCliUtils::OptionUtil.help_option`, which takes an array of the names and an optional `desc:` hash option.  When the user specifies one of those options, the utility will automatically print out the help and exit (unless you specify the hash option `exit_on_print: false`).
 
+As of version 1.4.0, there is support for overriding the built-in help display.  You can now use the `help_str=` method to set the help string override.  See my `mvr` gem for an example.
+
 ## Contributing
 
 1. Fork it ( http://github.com/henderea/everyday-cli-utils/fork )
