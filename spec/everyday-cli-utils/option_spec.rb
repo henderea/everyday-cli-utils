@@ -183,4 +183,26 @@ describe EverydayCliUtils::OptionUtil do
 '
     opt.to_s.should eq expected
   end
+
+  it 'supports layers' do
+    expected1 = { opt1: true }
+    expected2 = { opt1: false }
+    clean     = { opt1: false }
+    opt       = Option1.new
+    opt.default_settings toggle: true
+    opt.option :opt1, %w(-1 --opt-1)
+    opt.options.should eq clean
+    opt.default_options opt1: false
+    opt.apply_options :global, opt1: true
+    opt.options.should eq expected1
+    opt.apply_options :local, opt1: false
+    opt.options.should eq expected1
+    opt.apply_options :arg, opt1: true
+    opt.options.should eq expected2
+    opt.option_list.composite(:global, :arg).should eq expected2
+    opt.option_list.composite(:global).should eq expected1
+    opt.option_list.composite(:local, :arg).should eq expected1
+    opt.option_list.composite(:arg).should eq expected1
+    opt.option_list.composite(:global, :local, :arg).should eq expected2
+  end
 end

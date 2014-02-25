@@ -340,6 +340,8 @@ As of version 1.0.0, there is now support for the help display in `OptionParser`
 
 As of version 1.4.0, there is support for overriding the built-in help display.  You can now use the `help_str=` method to set the help string override.  See my `mvr` gem for an example.
 
+As of version 1.5.0, there is support for having global defaults.  It is basically the same as the regular defaults option, but it uses the method `global_default_options` instead of just `default_options`.  If the global defaults file exists, it will be loaded first, with the local defaults being loaded on top of it as if they were passed as flags, and then the flags are loaded on top of that in the same manner.
+
 ## Contributing
 
 1. Fork it ( http://github.com/henderea/everyday-cli-utils/fork )
