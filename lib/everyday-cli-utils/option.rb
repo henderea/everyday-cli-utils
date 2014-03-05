@@ -83,7 +83,7 @@ module EverydayCliUtils
                settings[:append] ? [] : nil
              },
              ->(current_value, new_value, settings) {
-               settings[:append] ? (current_value + new_value) : new_value
+               settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
              },
              ->(names, settings) {
                names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
@@ -216,6 +216,10 @@ module EverydayCliUtils
       @exit_on_global_save  = !settings.has_key?(:exit_on_save) || settings[:exit_on_save]
       names << settings[:desc] if settings.has_key?(:desc)
       @options.opts.on(*names) { @set_global_defaults = true }
+    end
+
+    def show_defaults_option(layers, names, settings = {})
+
     end
 
     def help_option(names, settings = {})
