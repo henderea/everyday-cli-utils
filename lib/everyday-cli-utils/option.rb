@@ -96,10 +96,11 @@ module EverydayCliUtils
   end
 
   class OptionDef
-    attr_reader :value
+    attr_reader :value, :names
 
-    def initialize(type, settings = {}, &block)
+    def initialize(type, names, settings = {}, &block)
       @type     = type
+      @names    = names
       @settings = settings
       @block    = block
       @value    = OptionTypes.default_value(type, settings)
@@ -129,7 +130,7 @@ module EverydayCliUtils
     def self.register(opts, options, type, opt_name, names, settings = {}, default_settings = {}, &block)
       settings = settings.clone
       default_settings.each { |v| settings[v[0]] = v[1] unless settings.has_key?(v[0]) }
-      opt               = OptionDef.new(type, settings, &block)
+      opt               = OptionDef.new(type, names.clone, settings, &block)
       options[opt_name] = opt
       names             = OptionTypes.mod_names(type, names, settings)
       opts.on(*names) { |*args|
@@ -187,6 +188,52 @@ module EverydayCliUtils
     def parse!(argv = ARGV)
       @opts.parse!(argv)
     end
+
+    def show_defaults
+      script_defaults = composite
+      global_defaults = composite(:global)
+      local_defaults  = composite(:global, :local)
+      global_diff     = hash_diff(global_defaults, script_defaults)
+      local_diff      = hash_diff(local_defaults, global_defaults)
+      str             = "Script Defaults:\n#{options_to_str(script_defaults)}\n"
+      str << "Script + Global Defaults:\n#{options_to_str(global_diff)}\n" unless global_diff.empty?
+      str << "Script + Global + Local Defaults:\n#{options_to_str(local_diff)}\n" unless local_diff.empty?
+      str
+    end
+
+    def hash_diff(hash1, hash2)
+      new_hash = {}
+      hash1.keys.each { |k| new_hash[k] = hash1[k] unless hash2.has_key?(k) && hash1[k] == hash2[k] }
+      new_hash
+    end
+
+    def options_to_str(options)
+      str          = ''
+      max_name_len = @options.values.map { |v| v.names.join(', ').length }.max
+      options.each { |v|
+        opt       = @options[v[0]]
+        val       = v[1]
+        names_str = opt.names.join(', ')
+        str << "#{' ' * 4}#{names_str}#{' ' * ((max_name_len + 4) - names_str.length)}#{val_to_str(val)}\n"
+      }
+      str
+    end
+
+    def val_to_str(val)
+      if val.nil?
+        'nil'
+      elsif val.is_a?(TrueClass)
+        'true'
+      elsif val.is_a?(FalseClass)
+        'false'
+      elsif val.is_a?(Enumerable)
+        "[#{val.map { |v| val_to_str(v) }.join(', ')}]"
+      elsif val.is_a?(Numeric)
+        val.to_s
+      else
+        "'#{val.to_s}'"
+      end
+    end
   end
 
   module OptionUtil
@@ -218,8 +265,12 @@ module EverydayCliUtils
       @options.opts.on(*names) { @set_global_defaults = true }
     end
 
-    def show_defaults_option(layers, names, settings = {})
-
+    def show_defaults_option(names, settings = {})
+      @options               ||= OptionList.new
+      @show_defaults         = false
+      @exit_on_show_defaults = !settings.has_key?(:exit_on_show) || settings[:exit_on_show]
+      names << settings[:desc] if settings.has_key?(:desc)
+      @options.opts.on(*names) { @show_defaults = true }
     end
 
     def help_option(names, settings = {})
@@ -284,6 +335,10 @@ module EverydayCliUtils
       if @display_help
         puts help
         exit 0 if @exit_on_print
+      end
+      if @show_defaults
+        puts @options.show_defaults
+        exit 0 if @exit_on_show_defaults
       end
       if @set_global_defaults
         IO.write(@global_defaults_file, @options.composite(:global, :arg).to_yaml)

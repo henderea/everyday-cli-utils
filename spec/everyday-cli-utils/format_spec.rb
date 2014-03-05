@@ -1,4 +1,5 @@
 require_relative '../../lib/everyday-cli-utils'
+require 'rspec'
 include EverydayCliUtils
 import :format
 

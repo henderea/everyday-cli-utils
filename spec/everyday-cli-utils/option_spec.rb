@@ -185,24 +185,83 @@ describe EverydayCliUtils::OptionUtil do
   end
 
   it 'supports layers' do
-    expected1 = { opt1: true }
-    expected2 = { opt1: false }
-    clean     = { opt1: false }
-    opt       = Option1.new
-    opt.default_settings toggle: true
+    global       = { opt1: false, opt2: [], opt3: 'hi', opt4: [5] }
+    global_arg   = { opt1: true, opt2: [], opt3: 'hi', opt4: [5] }
+    arg          = { opt1: false, opt2: [], opt3: nil, opt4: [] }
+    total        = { opt1: true, opt2: %w(hi bye), opt3: 'bye', opt4: [5, 4] }
+    global_local = { opt1: false, opt2: %w(hi bye), opt3: 'bye', opt4: [5, 4] }
+    local        = { opt1: true, opt2: %w(hi bye), opt3: 'bye', opt4: [4] }
+    local_arg        = { opt1: false, opt2: %w(hi bye), opt3: 'bye', opt4: [4] }
+    clean        = { opt1: false, opt2: [], opt3: nil, opt4: [] }
+    clean2       = { opt1: true, opt2: [], opt3: nil, opt4: [] }
+    opt          = Option1.new
+    opt.default_settings toggle: true, append: true
     opt.option :opt1, %w(-1 --opt-1)
+    opt.option_with_param :opt2, %w(-2 --big-opt-2)
+    opt.option_with_param :opt3, %w(-3 --bigger-opt-3), append: false
+    opt.option_with_param :opt4, %w(-4 --even-bigger-opt-4), type: Integer
     opt.options.should eq clean
-    opt.default_options opt1: false
-    opt.apply_options :global, opt1: true
-    opt.options.should eq expected1
-    opt.apply_options :local, opt1: false
-    opt.options.should eq expected1
+    opt.option_list.show_defaults.should eq <<SHOW
+Script Defaults:
+    -1, --opt-1                      false
+    -2 PARAM, --big-opt-2            []
+    -3 PARAM, --bigger-opt-3         nil
+    -4 PARAM, --even-bigger-opt-4    []
+
+SHOW
+    opt.default_options opt1: true
+    opt.options.should eq clean2
+    opt.option_list.show_defaults.should eq <<SHOW
+Script Defaults:
+    -1, --opt-1                      true
+    -2 PARAM, --big-opt-2            []
+    -3 PARAM, --bigger-opt-3         nil
+    -4 PARAM, --even-bigger-opt-4    []
+
+SHOW
+    opt.apply_options :global, opt1: true, opt3: 'hi', opt4: [5]
+    opt.options.should eq global
+    opt.option_list.show_defaults.should eq <<SHOW
+Script Defaults:
+    -1, --opt-1                      true
+    -2 PARAM, --big-opt-2            []
+    -3 PARAM, --bigger-opt-3         nil
+    -4 PARAM, --even-bigger-opt-4    []
+
+Script + Global Defaults:
+    -1, --opt-1                      false
+    -3 PARAM, --bigger-opt-3         'hi'
+    -4 PARAM, --even-bigger-opt-4    [5]
+
+SHOW
+    opt.apply_options :local, opt1: false, opt2: %w(hi bye), opt3: 'bye', opt4: [4]
+    opt.options.should eq global_local
+    opt.option_list.show_defaults.should eq <<SHOW
+Script Defaults:
+    -1, --opt-1                      true
+    -2 PARAM, --big-opt-2            []
+    -3 PARAM, --bigger-opt-3         nil
+    -4 PARAM, --even-bigger-opt-4    []
+
+Script + Global Defaults:
+    -1, --opt-1                      false
+    -3 PARAM, --bigger-opt-3         'hi'
+    -4 PARAM, --even-bigger-opt-4    [5]
+
+Script + Global + Local Defaults:
+    -2 PARAM, --big-opt-2            ['hi', 'bye']
+    -3 PARAM, --bigger-opt-3         'bye'
+    -4 PARAM, --even-bigger-opt-4    [5, 4]
+
+SHOW
     opt.apply_options :arg, opt1: true
-    opt.options.should eq expected2
-    opt.option_list.composite(:global, :arg).should eq expected2
-    opt.option_list.composite(:global).should eq expected1
-    opt.option_list.composite(:local, :arg).should eq expected1
-    opt.option_list.composite(:arg).should eq expected1
-    opt.option_list.composite(:global, :local, :arg).should eq expected2
+    opt.options.should eq total
+    opt.option_list.composite(:global, :arg).should eq global_arg
+    opt.option_list.composite(:global, :local).should eq global_local
+    opt.option_list.composite(:global).should eq global
+    opt.option_list.composite(:local).should eq local
+    opt.option_list.composite(:local, :arg).should eq local_arg
+    opt.option_list.composite(:arg).should eq arg
+    opt.option_list.composite(:global, :local, :arg).should eq total
   end
 end
