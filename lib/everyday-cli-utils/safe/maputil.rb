@@ -58,5 +58,27 @@ module EverydayCliUtils
       }
       rval
     end
+
+    def self.hashmap(hash, &block)
+      new_hash = {}
+      block_given? ? hash.each { |v| new_hash[v[0]] = block.call(v) } : hash.each { |v| new_hash[v[0]] = v[1] } unless hash.nil?
+      new_hash
+    end
+
+    def self.clone_hash(hash)
+      hashmap(hash)
+    end
+
+    def self.extend_hash(base_hash, extending_hash)
+      result_hash = clone_hash(extending_hash)
+      base_hash.each { |v| result_hash[v[0]] = v[1] unless result_hash.has_key?(v[0]) }
+      result_hash
+    end
+
+    def self.hash_diff(hash1, hash2)
+      new_hash = {}
+      hash1.keys.each { |k| new_hash[k] = hash1[k] unless hash2.has_key?(k) && hash1[k] == hash2[k] }
+      new_hash
+    end
   end
 end

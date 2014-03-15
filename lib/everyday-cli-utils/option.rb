@@ -1,3 +1,4 @@
+require_relative 'safe/maputil'
 require 'optparse'
 require 'yaml'
 
@@ -128,8 +129,7 @@ module EverydayCliUtils
     end
 
     def self.register(opts, options, type, opt_name, names, settings = {}, default_settings = {}, &block)
-      settings = settings.clone
-      default_settings.each { |v| settings[v[0]] = v[1] unless settings.has_key?(v[0]) }
+      settings          = EverydayCliUtils::MapUtil.extend_hash(default_settings, settings)
       opt               = OptionDef.new(type, names.clone, settings, &block)
       options[opt_name] = opt
       names             = OptionTypes.mod_names(type, names, settings)
@@ -140,12 +140,51 @@ module EverydayCliUtils
     end
   end
 
+  class SpecialOptionDef
+    attr_reader :order, :settings, :names, :order
+    attr_accessor :state
+
+    def initialize(order, exit_on_action, names, print_on_exit_str, settings, action_block, pre_parse_block = nil)
+      @order             = order
+      @exit_on_action    = exit_on_action
+      @names             = names
+      @print_on_exit_str = print_on_exit_str
+      @settings          = settings
+      @action_block      = action_block
+      @pre_parse_block   = pre_parse_block
+      @state             = false
+    end
+
+    def run(options_list)
+      if @state
+        @action_block.call(self, options_list)
+        if @exit_on_action
+          puts @print_on_exit_str unless @print_on_exit_str.nil?
+          exit 0
+        end
+      end
+    end
+
+    def run_pre_parse(options_list)
+      @pre_parse_block.call(self, options_list) unless @pre_parse_block.nil?
+    end
+
+    def self.register(order, opts, options, opt_name, names, exit_on_action, print_on_exit_str, settings, default_settings, action_block, pre_parse_block = nil)
+      settings                          = EverydayCliUtils::MapUtil.extend_hash(default_settings, settings)
+      opt                               = SpecialOptionDef.new(order, exit_on_action, names, print_on_exit_str, settings, action_block, pre_parse_block)
+      options.special_options[opt_name] = opt
+      names << settings[:desc] if settings.has_key?(:desc)
+      opts.on(*names) { opt.state = true }
+    end
+  end
+
   class OptionList
-    attr_reader :opts
+    attr_reader :opts, :special_options
     attr_accessor :default_settings, :help_str
 
     def initialize
       @options          = {}
+      @special_options  = {}
       @default_settings = {}
       @opts             = OptionParser.new
       @help_str         = nil
@@ -159,12 +198,32 @@ module EverydayCliUtils
       @options[opt_name].set(value) if @options.has_key?(opt_name)
     end
 
+    def set_all(opts)
+      opts.each { |opt| set(opt[0], opt[1]) }
+    end
+
     def update(opt_name, value, layer)
       @options[opt_name].update(value, layer) if @options.has_key?(opt_name)
     end
 
+    def update_all(layer, opts)
+      opts.each { |opt| update(opt[0], opt[1], layer) }
+    end
+
     def register(type, opt_name, names, settings = {}, &block)
-      OptionDef.register(@opts, @options, type, opt_name, names, settings, @default_settings, &block)
+      OptionDef.register(@opts, self, type, opt_name, names, settings, @default_settings, &block)
+    end
+
+    def register_special(order, opt_name, names, exit_on_action, print_on_exit_str, settings, action_block, pre_parse_block = nil)
+      SpecialOptionDef.register(order, @opts, self, opt_name, names, exit_on_action, print_on_exit_str, settings, @default_settings, action_block, pre_parse_block)
+    end
+
+    def run_special
+      @special_options.to_a.sort_by { |v| v[1].order }.each { |v| v[1].run(self) }
+    end
+
+    def run_special_pre_parse
+      @special_options.to_a.sort_by { |v| v[1].order }.each { |v| v[1].run_pre_parse(self) }
     end
 
     def composite(*layers)
@@ -193,28 +252,22 @@ module EverydayCliUtils
       script_defaults = composite
       global_defaults = composite(:global)
       local_defaults  = composite(:global, :local)
-      global_diff     = hash_diff(global_defaults, script_defaults)
-      local_diff      = hash_diff(local_defaults, global_defaults)
+      global_diff     = EverydayCliUtils::MapUtil.hash_diff(global_defaults, script_defaults)
+      local_diff      = EverydayCliUtils::MapUtil.hash_diff(local_defaults, global_defaults)
       str             = "Script Defaults:\n#{options_to_str(script_defaults)}\n"
       str << "Script + Global Defaults:\n#{options_to_str(global_diff)}\n" unless global_diff.empty?
       str << "Script + Global + Local Defaults:\n#{options_to_str(local_diff)}\n" unless local_diff.empty?
       str
     end
 
-    def hash_diff(hash1, hash2)
-      new_hash = {}
-      hash1.keys.each { |k| new_hash[k] = hash1[k] unless hash2.has_key?(k) && hash1[k] == hash2[k] }
-      new_hash
-    end
-
-    def options_to_str(options)
+    def options_to_str(options, indent = 4)
       str          = ''
       max_name_len = @options.values.map { |v| v.names.join(', ').length }.max
       options.each { |v|
         opt       = @options[v[0]]
         val       = v[1]
         names_str = opt.names.join(', ')
-        str << "#{' ' * 4}#{names_str}#{' ' * ((max_name_len + 4) - names_str.length)}#{val_to_str(val)}\n"
+        str << "#{' ' * indent}#{names_str}#{' ' * ((max_name_len + 4) - names_str.length)}#{val_to_str(val)}\n"
       }
       str
     end
@@ -248,37 +301,45 @@ module EverydayCliUtils
     end
 
     def defaults_option(file_path, names, settings = {})
-      @options       ||= OptionList.new
-      @set_defaults  = false
-      @defaults_file = File.expand_path(file_path)
-      @exit_on_save  = !settings.has_key?(:exit_on_save) || settings[:exit_on_save]
-      names << settings[:desc] if settings.has_key?(:desc)
-      @options.opts.on(*names) { @set_defaults = true }
+      @options             ||= OptionList.new
+      settings[:file_path] = file_path
+      @options.register_special(4, :defaults, names, settings[:exit_on_save], 'Defaults set', settings,
+          ->(opt, options) {
+            IO.write(opt.settings[:file_path], options.composite(:local, :arg).to_yaml)
+          }, ->(opt, options) {
+            unless opt.settings[:file_path].nil? || !File.exist?(opt.settings[:file_path])
+              options.update_all :local, YAML::load_file(opt.settings[:file_path])
+            end
+          })
     end
 
     def global_defaults_option(file_path, names, settings = {})
-      @options              ||= OptionList.new
-      @set_global_defaults  = false
-      @global_defaults_file = File.expand_path(file_path)
-      @exit_on_global_save  = !settings.has_key?(:exit_on_save) || settings[:exit_on_save]
-      names << settings[:desc] if settings.has_key?(:desc)
-      @options.opts.on(*names) { @set_global_defaults = true }
+      @options             ||= OptionList.new
+      settings[:file_path] = file_path
+      @options.register_special(3, :global_defaults, names, settings[:exit_on_save], 'Global defaults set', settings,
+          ->(opt, options) {
+            IO.write(opt.settings[:file_path], options.composite(:global, :arg).to_yaml)
+          }, ->(opt, options) {
+            unless opt.settings[:file_path].nil? || !File.exist?(opt.settings[:file_path])
+              options.update_all :global, YAML::load_file(opt.settings[:file_path])
+            end
+          })
     end
 
     def show_defaults_option(names, settings = {})
-      @options               ||= OptionList.new
-      @show_defaults         = false
-      @exit_on_show_defaults = !settings.has_key?(:exit_on_show) || settings[:exit_on_show]
-      names << settings[:desc] if settings.has_key?(:desc)
-      @options.opts.on(*names) { @show_defaults = true }
+      @options ||= OptionList.new
+      @options.register_special(2, :show_defaults, names, settings[:exit_on_show], nil, settings,
+                                ->(_, options) {
+                                  puts options.show_defaults
+                                })
     end
 
     def help_option(names, settings = {})
-      @options       ||= OptionList.new
-      @display_help  = false
-      @exit_on_print = !settings.has_key?(:exit_on_print) || settings[:exit_on_print]
-      names << settings[:desc] if settings.has_key?(:desc)
-      @options.opts.on(*names) { @display_help = true }
+      @options ||= OptionList.new
+      @options.register_special(1, :help, names, settings[:exit_on_print], nil, settings,
+                                ->(_, options) {
+                                  puts options.help
+                                })
     end
 
     def default_settings(settings = {})
@@ -288,12 +349,12 @@ module EverydayCliUtils
 
     def default_options(opts = {})
       @options ||= OptionList.new
-      opts.each { |opt| @options.set(opt[0], opt[1]) }
+      @options.set_all(opts)
     end
 
     def apply_options(layer, opts = {})
       @options ||= OptionList.new
-      opts.each { |opt| @options.update(opt[0], opt[1], layer) }
+      @options.update_all(layer, opts)
     end
 
     def banner(banner)
@@ -329,30 +390,9 @@ module EverydayCliUtils
 
     def parse!(argv = ARGV)
       @options ||= OptionList.new
-      apply_options :global, YAML::load_file(@global_defaults_file) unless @global_defaults_file.nil? || !File.exist?(@global_defaults_file)
-      apply_options :local, YAML::load_file(@defaults_file) unless @defaults_file.nil? || !File.exist?(@defaults_file)
+      @options.run_special_pre_parse
       @options.parse!(argv)
-      if @display_help
-        puts help
-        exit 0 if @exit_on_print
-      end
-      if @show_defaults
-        puts @options.show_defaults
-        exit 0 if @exit_on_show_defaults
-      end
-      if @set_global_defaults
-        IO.write(@global_defaults_file, @options.composite(:global, :arg).to_yaml)
-        if @exit_on_global_save
-          puts 'Global defaults set'
-          exit 0
-        end
-      elsif @set_defaults
-        IO.write(@defaults_file, @options.composite(:local, :arg).to_yaml)
-        if @exit_on_save
-          puts 'Defaults set'
-          exit 0
-        end
-      end
+      @options.run_special
     end
   end
 end

@@ -68,4 +68,25 @@ describe 'maputil' do
     expected = { a: '1-4', b: '1-4', c: '1-4', d: '1-4', :e => '5' }
     expanded.should eq expected
   end
+
+  it 'provides a means of cloning a hash' do
+    hash = { a: 1, b: 2, c: 3, d: 4, e: 5 }
+    cloned = hash.clone
+    hash.should_not equal cloned
+  end
+
+  it 'provides a means of using map with a hash' do
+    hash = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
+    mapped = hash.map { |v| v[1] + ((v[0] == :a || v[0] == :c || v[0] == :e) ? 1 : -1) }
+    expected = { a: 2, b: 1, c: 4, d: 3, e: 6, f: 5}
+    mapped.should eq expected
+  end
+
+  it 'provides a means of extending one hash with another' do
+    hash1 = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
+    hash2 = { a: 11, d: 14, f: 16 }
+    extended = hash2.extend_hash(hash1)
+    expected = { a: 11, b: 2, c: 3, d: 14, e: 5, f: 16 }
+    extended.should eq expected
+  end
 end

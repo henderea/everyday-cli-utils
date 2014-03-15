@@ -50,4 +50,20 @@ class Hash
   def expand
     EverydayCliUtils::MapUtil.expand(self)
   end
+
+  def clone
+    EverydayCliUtils::MapUtil.clone_hash(self)
+  end
+
+  def map(&block)
+    EverydayCliUtils::MapUtil.hashmap(self, &block);
+  end
+
+  def extend_hash(base_hash)
+    EverydayCliUtils::MapUtil.extend_hash(base_hash, self)
+  end
+
+  def -(hash2)
+    EverydayCliUtils::MapUtil.hash_diff(self, hash2)
+  end
 end
