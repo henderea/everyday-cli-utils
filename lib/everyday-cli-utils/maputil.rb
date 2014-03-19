@@ -55,7 +55,7 @@ class Hash
     EverydayCliUtils::MapUtil.clone_hash(self)
   end
 
-  def map(&block)
+  def hashmap(&block)
     EverydayCliUtils::MapUtil.hashmap(self, &block);
   end
 

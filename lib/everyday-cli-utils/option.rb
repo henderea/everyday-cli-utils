@@ -302,8 +302,8 @@ module EverydayCliUtils
 
     def defaults_option(file_path, names, settings = {})
       @options             ||= OptionList.new
-      settings[:file_path] = file_path
-      @options.register_special(4, :defaults, names, settings[:exit_on_save], 'Defaults set', settings,
+      settings[:file_path] = File.expand_path(file_path)
+      @options.register_special(4, :defaults, names, !settings.has_key?(:exit_on_save) || settings[:exit_on_save], 'Defaults set', settings,
           ->(opt, options) {
             IO.write(opt.settings[:file_path], options.composite(:local, :arg).to_yaml)
           }, ->(opt, options) {
@@ -315,8 +315,8 @@ module EverydayCliUtils
 
     def global_defaults_option(file_path, names, settings = {})
       @options             ||= OptionList.new
-      settings[:file_path] = file_path
-      @options.register_special(3, :global_defaults, names, settings[:exit_on_save], 'Global defaults set', settings,
+      settings[:file_path] = File.expand_path(file_path)
+      @options.register_special(3, :global_defaults, names, !settings.has_key?(:exit_on_save) || settings[:exit_on_save], 'Global defaults set', settings,
           ->(opt, options) {
             IO.write(opt.settings[:file_path], options.composite(:global, :arg).to_yaml)
           }, ->(opt, options) {
@@ -328,7 +328,7 @@ module EverydayCliUtils
 
     def show_defaults_option(names, settings = {})
       @options ||= OptionList.new
-      @options.register_special(2, :show_defaults, names, settings[:exit_on_show], nil, settings,
+      @options.register_special(2, :show_defaults, names, !settings.has_key?(:exit_on_show) || settings[:exit_on_show], nil, settings,
                                 ->(_, options) {
                                   puts options.show_defaults
                                 })
@@ -336,7 +336,7 @@ module EverydayCliUtils
 
     def help_option(names, settings = {})
       @options ||= OptionList.new
-      @options.register_special(1, :help, names, settings[:exit_on_print], nil, settings,
+      @options.register_special(1, :help, names, !settings.has_key?(:exit_on_print) || settings[:exit_on_print], nil, settings,
                                 ->(_, options) {
                                   puts options.help
                                 })
