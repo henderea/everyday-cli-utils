@@ -77,7 +77,7 @@ describe 'maputil' do
 
   it 'provides a means of using map with a hash' do
     hash = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
-    mapped = hash.map { |v| v[1] + ((v[0] == :a || v[0] == :c || v[0] == :e) ? 1 : -1) }
+    mapped = hash.hashmap { |v| v[1] + ((v[0] == :a || v[0] == :c || v[0] == :e) ? 1 : -1) }
     expected = { a: 2, b: 1, c: 4, d: 3, e: 6, f: 5}
     mapped.should eq expected
   end

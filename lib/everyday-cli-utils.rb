@@ -1,7 +1,7 @@
 require_relative 'everyday-cli-utils/version'
 
 module EverydayCliUtils
-  AVAILABLE_MODULES  = [:ask, :format, :format_safe, :histogram, :histogram_safe, :kmeans, :kmeans_safe, :maputil, :maputil_safe, :option]
+  AVAILABLE_MODULES  = [:ask, :format, :format_safe, :histogram, :histogram_safe, :kmeans, :kmeans_safe, :maputil, :maputil_safe, :option, :override]
   MODULE_TO_RELATIVE = {
       ask:            'everyday-cli-utils/ask',
       format:         'everyday-cli-utils/format',
@@ -12,7 +12,8 @@ module EverydayCliUtils
       kmeans_safe:    'everyday-cli-utils/safe/kmeans',
       maputil:        'everyday-cli-utils/maputil',
       maputil_safe:   'everyday-cli-utils/safe/maputil',
-      option:         'everyday-cli-utils/option'
+      option:         'everyday-cli-utils/option',
+      override:       'everyday-cli-utils/override',
   }
 
   def import(*names)
