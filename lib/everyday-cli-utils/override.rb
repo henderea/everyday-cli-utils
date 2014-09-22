@@ -54,7 +54,7 @@ class Object
   end
 
   def overrides
-    (@overrides && @overrides.get(self)) || self.class.overrides(self)
+    (@overrides && @overrides.get(self)) || self.class.class_overrides(self)
   end
 
   def true_overrides
@@ -78,7 +78,7 @@ class Object
   end
 
   class << self
-    def overrides(s)
+    def class_overrides(s)
       @overrides && @overrides.get(s)
     end
 
