@@ -1,10 +1,9 @@
 # EverydayCliUtils
 
-[![Gem Version](https://badge.fury.io/rb/everyday-cli-utils.png)](http://badge.fury.io/rb/everyday-cli-utils)
-[![Build Status](https://travis-ci.org/henderea/everyday-cli-utils.png?branch=master)](https://travis-ci.org/henderea/everyday-cli-utils)
-[![Dependency Status](https://gemnasium.com/henderea/everyday-cli-utils.png)](https://gemnasium.com/henderea/everyday-cli-utils)
-[![Code Climate](https://codeclimate.com/github/henderea/everyday-cli-utils.png)](https://codeclimate.com/github/henderea/everyday-cli-utils)
-[![Coverage Status](https://coveralls.io/repos/henderea/everyday-cli-utils/badge.png?branch=master)](https://coveralls.io/r/henderea/everyday-cli-utils?branch=master)
+[![Gem Version](https://badge.fury.io/rb/everyday-cli-utils.svg)](http://badge.fury.io/rb/everyday-cli-utils)
+[![Build Status](https://travis-ci.org/henderea/everyday-cli-utils.svg?branch=master)](https://travis-ci.org/henderea/everyday-cli-utils)
+[![Dependency Status](https://gemnasium.com/henderea/everyday-cli-utils.svg)](https://gemnasium.com/henderea/everyday-cli-utils)
+[![Code Climate](https://codeclimate.com/github/henderea/everyday-cli-utils/badges/gpa.svg)](https://codeclimate.com/github/henderea/everyday-cli-utils)
 
 A few CLI and general utilities.  Includes a numbered-menu select loop utility, a ANSI formatting escape code handler, a text-based histogram maker, k-means and n-means (k-means with minimum optimal k) calculators, various collection utility methods, and a utility for using OptionParser with less code.
 
