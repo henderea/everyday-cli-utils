@@ -4,22 +4,24 @@ require 'yaml'
 
 module EverydayCliUtils
   class Option
-    def self.add_option(options, opts, names, opt_name, settings = {})
-      opts.on(*names) {
-        options[opt_name] = !settings[:toggle] || !options[opt_name]
-        yield if block_given?
-      }
-    end
+    class << self
+      def add_option(options, opts, names, opt_name, settings = {})
+        opts.on(*names) {
+          options[opt_name] = !settings[:toggle] || !options[opt_name]
+          yield if block_given?
+        }
+      end
 
-    def self.add_option_with_param(options, opts, names, opt_name, settings = {})
-      opts.on(*names, settings[:type] || String) { |param|
-        if settings[:append]
-          options[opt_name] << param
-        else
-          options[opt_name] = param
-        end
-        yield if block_given?
-      }
+      def add_option_with_param(options, opts, names, opt_name, settings = {})
+        opts.on(*names, settings[:type] || String) { |param|
+          if settings[:append]
+            options[opt_name] << param
+          else
+            options[opt_name] = param
+          end
+          yield if block_given?
+        }
+      end
     end
   end
 
@@ -46,54 +48,64 @@ module EverydayCliUtils
   end
 
   class OptionTypes
-    def self.def_type(type, default_value_block, value_determine_block, name_mod_block = nil, value_transform_block = nil)
-      @types       ||= {}
-      @types[type] = OptionType.new(default_value_block, value_determine_block, name_mod_block, value_transform_block)
+    class << self
+      def def_type(type, default_value_block, value_determine_block, name_mod_block = nil, value_transform_block = nil)
+        @types       ||= {}
+        @types[type] = OptionType.new(default_value_block, value_determine_block, name_mod_block, value_transform_block)
+      end
+
+      def default_value(type, settings = {})
+        @types ||= {}
+        @types.has_key?(type) ? @types[type].default_value(settings) : nil
+      end
+
+      def updated_value(type, current_value, new_value, settings = {})
+        @types ||= {}
+        @types.has_key?(type) ? @types[type].updated_value(current_value, new_value, settings) : current_value
+      end
+
+      def mod_names(type, names, settings = {})
+        @types ||= {}
+        @types.has_key?(type) ? @types[type].mod_names(names, settings) : names
+      end
+
+      def def_option_type
+        def_type(:option,
+                 ->(_) {
+                   false
+                 },
+                 ->(current_value, new_value, settings) {
+                   new_value ? (!settings[:toggle] || !current_value) : current_value
+                 },
+                 ->(names, settings) {
+                   settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
+                 },
+                 ->(new_value, _) {
+                   !(!new_value)
+                 })
+      end
+
+      def def_option_with_param_type
+        def_type(:option_with_param,
+                 ->(settings) {
+                   settings[:append] ? [] : nil
+                 },
+                 ->(current_value, new_value, settings) {
+                   settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
+                 },
+                 ->(names, settings) {
+                   names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
+                   names = settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
+                   settings.has_key?(:type) ? (names + [settings[:type]]) : names
+                 },
+                 ->(new_value, settings) {
+                   new_value.is_a?(Array) ? (settings[:append] ? new_value : new_value[0]) : (settings[:append] ? [new_value] : new_value)
+                 })
+      end
     end
 
-    def self.default_value(type, settings = {})
-      @types ||= {}
-      @types.has_key?(type) ? @types[type].default_value(settings) : nil
-    end
-
-    def self.updated_value(type, current_value, new_value, settings = {})
-      @types ||= {}
-      @types.has_key?(type) ? @types[type].updated_value(current_value, new_value, settings) : current_value
-    end
-
-    def self.mod_names(type, names, settings = {})
-      @types ||= {}
-      @types.has_key?(type) ? @types[type].mod_names(names, settings) : names
-    end
-
-    def_type(:option,
-             ->(_) {
-               false
-             },
-             ->(current_value, new_value, settings) {
-               new_value ? (!settings[:toggle] || !current_value) : current_value
-             },
-             ->(names, settings) {
-               settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
-             },
-             ->(new_value, _) {
-               !(!new_value)
-             })
-    def_type(:option_with_param,
-             ->(settings) {
-               settings[:append] ? [] : nil
-             },
-             ->(current_value, new_value, settings) {
-               settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
-             },
-             ->(names, settings) {
-               names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
-               names = settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
-               settings.has_key?(:type) ? (names + [settings[:type]]) : names
-             },
-             ->(new_value, settings) {
-               new_value.is_a?(Array) ? (settings[:append] ? new_value : new_value[0]) : (settings[:append] ? [new_value] : new_value)
-             })
+    def_option_type
+    def_option_with_param_type
   end
 
   class OptionDef
@@ -128,15 +140,17 @@ module EverydayCliUtils
       value
     end
 
-    def self.register(opts, options, type, opt_name, names, settings = {}, default_settings = {}, &block)
-      settings          = EverydayCliUtils::MapUtil.extend_hash(default_settings, settings)
-      opt               = OptionDef.new(type, names.clone, settings, &block)
-      options[opt_name] = opt
-      names             = OptionTypes.mod_names(type, names, settings)
-      opts.on(*names) { |*args|
-        opt.update(args, :arg)
-        opt.run
-      }
+    class << self
+      def register(opts, options, type, opt_name, names, settings = {}, default_settings = {}, &block)
+        settings          = EverydayCliUtils::MapUtil.extend_hash(default_settings, settings)
+        opt               = OptionDef.new(type, names.clone, settings, &block)
+        options[opt_name] = opt
+        names             = OptionTypes.mod_names(type, names, settings)
+        opts.on(*names) { |*args|
+          opt.update(args, :arg)
+          opt.run
+        }
+      end
     end
   end
 
@@ -169,12 +183,14 @@ module EverydayCliUtils
       @pre_parse_block.call(self, options_list) unless @pre_parse_block.nil?
     end
 
-    def self.register(order, opts, options, opt_name, names, exit_on_action, print_on_exit_str, settings, default_settings, action_block, pre_parse_block = nil)
-      settings                          = EverydayCliUtils::MapUtil.extend_hash(default_settings, settings)
-      opt                               = SpecialOptionDef.new(order, exit_on_action, names, print_on_exit_str, settings, action_block, pre_parse_block)
-      options.special_options[opt_name] = opt
-      names << settings[:desc] if settings.has_key?(:desc)
-      opts.on(*names) { opt.state = true }
+    class << self
+      def register(order, opts, options, opt_name, names, exit_on_action, print_on_exit_str, settings, default_settings, action_block, pre_parse_block = nil)
+        settings                          = EverydayCliUtils::MapUtil.extend_hash(default_settings, settings)
+        opt                               = SpecialOptionDef.new(order, exit_on_action, names, print_on_exit_str, settings, action_block, pre_parse_block)
+        options.special_options[opt_name] = opt
+        names << settings[:desc] if settings.has_key?(:desc)
+        opts.on(*names) { opt.state = true }
+      end
     end
   end
 
@@ -267,13 +283,15 @@ module EverydayCliUtils
     def options_to_str(options, indent = 4)
       str          = ''
       max_name_len = @options.values.map { |v| v.names.join(', ').length }.max
-      options.each { |v|
-        opt       = @options[v[0]]
-        val       = v[1]
-        names_str = opt.names.join(', ')
-        str << "#{' ' * indent}#{names_str}#{' ' * ((max_name_len + 4) - names_str.length)}#{val_to_str(val)}\n"
-      }
+      options.each { |v| str << build_option_str(v, indent, max_name_len) }
       str
+    end
+
+    def build_option_str(v, indent, max_name_len)
+      opt       = @options[v[0]]
+      val       = v[1]
+      names_str = opt.names.join(', ')
+      "#{' ' * indent}#{names_str}#{' ' * ((max_name_len + 4) - names_str.length)}#{val_to_str(val)}\n"
     end
 
     def val_to_str(val)
@@ -315,14 +333,27 @@ module EverydayCliUtils
     def defaults_options_helper(file_path, names, settings, order, opt_name, print_on_exit_string, composite_name)
       @options             ||= OptionList.new
       settings[:file_path] = File.expand_path(file_path)
-      @options.register_special(order, opt_name, names, !settings.has_key?(:exit_on_save) || settings[:exit_on_save], print_on_exit_string, settings,
-                                ->(opt, options) {
-                                  IO.write(opt.settings[:file_path], options.composite(composite_name, :arg).to_yaml)
-                                }, ->(opt, options) {
-        unless opt.settings[:file_path].nil? || !File.exist?(opt.settings[:file_path])
-          options.update_all composite_name, YAML::load_file(opt.settings[:file_path])
-        end
-      })
+      @options.register_special(order, opt_name, names, key_absent_or_true(settings, :exit_on_save), print_on_exit_string, settings,
+                                write_defaults_proc(composite_name), read_defaults_proc(composite_name))
+    end
+
+    def write_defaults_proc(composite_name)
+      ->(opt, options) { IO.write(opt.settings[:file_path], options.composite(composite_name, :arg).to_yaml) }
+    end
+
+    def read_defaults_proc(composite_name)
+      ->(opt, options) {
+        file_path = opt.settings[:file_path]
+        options.update_all composite_name, YAML::load_file(file_path) unless file_path_nil_or_exists?(file_path)
+      }
+    end
+
+    def file_path_nil_or_exists?(file_path)
+      file_path.nil? || !File.exist?(file_path)
+    end
+
+    def key_absent_or_true(settings, key)
+      !settings.has_key?(key) || settings[key]
     end
 
     def show_defaults_option(names, settings = {})
@@ -339,7 +370,7 @@ module EverydayCliUtils
 
     def show_info_helper(names, settings, order, opt_name, exit_on_sym, &block)
       @options ||= OptionList.new
-      @options.register_special(order, opt_name, names, !settings.has_key?(exit_on_sym) || settings[exit_on_sym], nil, settings, block)
+      @options.register_special(order, opt_name, names, key_absent_or_true(settings, exit_on_sym), nil, settings, block)
     end
 
     def default_settings(settings = {})
