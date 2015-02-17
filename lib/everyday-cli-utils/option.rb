@@ -71,18 +71,18 @@ module EverydayCliUtils
 
       def def_option_type
         def_type(:option,
-                 instance_method(:option_default),
-                 instance_method(:option_value_determine),
-                 instance_method(:option_name_mod),
-                 instance_method(:option_value_transform))
+                 instance_method(:option_default).bind(self),
+                 instance_method(:option_value_determine).bind(self),
+                 instance_method(:option_name_mod).bind(self),
+                 instance_method(:option_value_transform).bind(self))
       end
 
       def def_option_with_param_type
         def_type(:option_with_param,
-                 instance_method(:param_option_default),
-                 instance_method(:param_option_value_determine),
-                 instance_method(:param_option_name_mod),
-                 instance_method(:param_option_value_transform))
+                 instance_method(:param_option_default).bind(self),
+                 instance_method(:param_option_value_determine).bind(self),
+                 instance_method(:param_option_name_mod).bind(self),
+                 instance_method(:param_option_value_transform).bind(self))
       end
     end
 

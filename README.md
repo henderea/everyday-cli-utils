@@ -10,9 +10,6 @@ A few CLI and general utilities.  Includes a numbered-menu select loop utility, 
 
 Note: The curses utility has been moved to the `everyday-curses` gem
 
-## Issue Tracking
-Please use <https://everydayprogramminggenius.atlassian.net/browse/ECU> for issue tracking.
-
 ## Installation
 
 Add this line to your application's Gemfile:
