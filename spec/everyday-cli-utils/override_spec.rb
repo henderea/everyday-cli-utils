@@ -11,7 +11,7 @@ end
 describe 'override' do
   it 'supports overriding methods' do
     arr = [1, 2, 3]
-    arr.override(:first) { "Boo! #{self.overrides.first}"}
+    arr.override(:first) { "Boo! #{self.overrides.first}" }
     expect(arr.first).to eq 'Boo! 1'
   end
 

@@ -191,7 +191,7 @@ describe EverydayCliUtils::OptionUtil do
     total        = { opt1: true, opt2: %w(hi bye), opt3: 'bye', opt4: [5, 4] }
     global_local = { opt1: false, opt2: %w(hi bye), opt3: 'bye', opt4: [5, 4] }
     local        = { opt1: true, opt2: %w(hi bye), opt3: 'bye', opt4: [4] }
-    local_arg        = { opt1: false, opt2: %w(hi bye), opt3: 'bye', opt4: [4] }
+    local_arg    = { opt1: false, opt2: %w(hi bye), opt3: 'bye', opt4: [4] }
     clean        = { opt1: false, opt2: [], opt3: nil, opt4: [] }
     clean2       = { opt1: true, opt2: [], opt3: nil, opt4: [] }
     opt          = Option1.new

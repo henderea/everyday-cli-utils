@@ -29,18 +29,25 @@ class OverridesInstance
   end
 
   def call_override(method_symbol, *args, &block)
-    if @overrides.has_key?(method_symbol.to_sym)
-      overrides = @overrides[method_symbol.to_sym]
-      ind       = overrides.count + (@ind - 1)
-      ovin      = Thread.current["overrides_ind_#{@obj.__id__}"] || 0
-      ind       += ovin
-      Thread.current["overrides_ind_#{@obj.__id__}"] = @ind + ovin - 1
-      rv                                             = overrides[ind].bind(@obj).call(*args, &block)
-      Thread.current["overrides_ind_#{@obj.__id__}"] = ovin
-      rv
-    else
-      @obj.send(method_symbol.to_sym, *args, &block)
-    end
+    @overrides.has_key?(method_symbol.to_sym) ? -> {
+      overrides, ind, ovin = get_overrides_and_inds(method_symbol)
+      call_override_at_index(overrides, ind, ovin, args, &block)
+    }.call : @obj.send(method_symbol.to_sym, *args, &block)
+  end
+
+  def call_override_at_index(overrides, ind, ovin, args, &block)
+    Thread.current["overrides_ind_#{@obj.__id__}"] = @ind + ovin - 1
+    rv                                             = overrides[ind].bind(@obj).call(*args, &block)
+    Thread.current["overrides_ind_#{@obj.__id__}"] = ovin
+    rv
+  end
+
+  def get_overrides_and_inds(method_symbol)
+    overrides = @overrides[method_symbol.to_sym]
+    ind       = overrides.count + (@ind - 1)
+    ovin      = Thread.current["overrides_ind_#{@obj.__id__}"] || 0
+    ind       += ovin
+    return overrides, ind, ovin
   end
 
   def method_missing(symbol, *args, &block)
@@ -70,7 +77,7 @@ class Object
     class << self
       self
     end.class_eval {
-      original_method     = instance_method(method_name.to_sym)
+      original_method   = instance_method(method_name.to_sym)
       s2.true_overrides ||= MethodOverrides.new
       s2.true_overrides.store_override(method_name.to_sym, original_method)
       self.create_method(method_name.to_sym, &block)
