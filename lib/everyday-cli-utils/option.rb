@@ -68,43 +68,66 @@ module EverydayCliUtils
         @types ||= {}
         @types.has_key?(type) ? @types[type].mod_names(names, settings) : names
       end
+
+      #region option procs
+      def option_default(_)
+        false
+      end
+
+      def option_value_determine(current_value, new_value, settings)
+        new_value ? (!settings[:toggle] || !current_value) : current_value
+      end
+
+      def option_name_mod(names, settings)
+        settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
+      end
+
+      def option_value_transform(new_value, _)
+        !(!new_value)
+      end
+
+      #endregion
+
+      def def_option_type
+        def_type(:option,
+                 instance_method(:option_default),
+                 instance_method(:option_value_determine),
+                 instance_method(:option_name_mod),
+                 instance_method(:option_value_transform))
+      end
+
+      #region option_with_param procs
+      def param_option_default(settings)
+        settings[:append] ? [] : nil
+      end
+
+      def param_option_value_determine(current_value, new_value, settings)
+        settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
+      end
+
+      def param_option_name_mod(names, settings)
+        names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
+        names = settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
+        settings.has_key?(:type) ? (names + [settings[:type]]) : names
+      end
+
+      def param_option_value_transform(new_value, settings)
+        new_value.is_a?(Array) ? (settings[:append] ? new_value : new_value[0]) : (settings[:append] ? [new_value] : new_value)
+      end
+
+      #endregion
+
+      def def_option_with_param_type
+        def_type(:option_with_param,
+                 instance_method(:param_option_default),
+                 instance_method(:param_option_value_determine),
+                 instance_method(:param_option_name_mod),
+                 instance_method(:param_option_value_transform))
+      end
     end
 
-    #region option procs
-    OPTION_DEFAULT_PROC         = ->(_) {
-      false
-    }
-    OPTION_VALUE_DETERMINE_PROC = ->(current_value, new_value, settings) {
-      new_value ? (!settings[:toggle] || !current_value) : current_value
-    }
-    OPTION_NAME_MOD_PROC        = ->(names, settings) {
-      settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
-    }
-    OPTION_VALUE_TRANSFORM_PROC = ->(new_value, _) {
-      !(!new_value)
-    }
-    #endregion
-
-    def_type(:option, OPTION_DEFAULT_PROC, OPTION_VALUE_DETERMINE_PROC, OPTION_NAME_MOD_PROC, OPTION_VALUE_TRANSFORM_PROC)
-
-    #region option_with_param procs
-    PARAM_OPTION_DEFAULT_PROC         = ->(settings) {
-      settings[:append] ? [] : nil
-    }
-    PARAM_OPTION_VALUE_DETERMINE_PROC = ->(current_value, new_value, settings) {
-      settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
-    }
-    PARAM_OPTION_NAME_MOD_PROC        = ->(names, settings) {
-      names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
-      names = settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
-      settings.has_key?(:type) ? (names + [settings[:type]]) : names
-    }
-    PARAM_OPTION_VALUE_TRANSFORM_PROC = ->(new_value, settings) {
-      new_value.is_a?(Array) ? (settings[:append] ? new_value : new_value[0]) : (settings[:append] ? [new_value] : new_value)
-    }
-    #endregion
-
-    def_type(:option_with_param, PARAM_OPTION_DEFAULT_PROC, PARAM_OPTION_VALUE_DETERMINE_PROC, PARAM_OPTION_NAME_MOD_PROC, PARAM_OPTION_VALUE_TRANSFORM_PROC)
+    def_option_type
+    def_option_with_param_type
   end
 
   class OptionDef
