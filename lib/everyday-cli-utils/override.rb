@@ -15,6 +15,21 @@ class MethodOverrides
   def get(obj)
     OverridesInstance.new(@overrides, obj)
   end
+
+  class << self
+    def register_override(s, s2, method_name, &block)
+      s.class_eval {
+        MethodOverrides.store_true_override(s, s2, method_name)
+        s.create_method(method_name.to_sym, &block)
+      }
+    end
+
+    def store_true_override(s, s2, method_name)
+      original_method   = s.instance_method(method_name.to_sym)
+      s2.true_overrides ||= MethodOverrides.new
+      s2.true_overrides.store_override(method_name.to_sym, original_method)
+    end
+  end
 end
 
 class OverridesInstance
@@ -53,17 +68,6 @@ class OverridesInstance
   def method_missing(symbol, *args, &block)
     call_override(symbol, *args, &block)
   end
-
-  class << self
-    def register_override(s, s2, method_name, &block)
-      s.class_eval {
-        original_method   = s.instance_method(method_name.to_sym)
-        s2.true_overrides ||= MethodOverrides.new
-        s2.true_overrides.store_override(method_name.to_sym, original_method)
-        s.create_method(method_name.to_sym, &block)
-      }
-    end
-  end
 end
 
 class Object
@@ -87,7 +91,7 @@ class Object
     s = class << self
       self
     end
-    OverridesInstance.register_override(s, self, method_name, &block)
+    MethodOverrides.register_override(s, self, method_name, &block)
   end
 
   class << self
@@ -104,7 +108,7 @@ class Object
     end
 
     def override(method_name, &block)
-      OverridesInstance.register_override(self, self, method_name, &block)
+      MethodOverrides.register_override(self, self, method_name, &block)
     end
   end
 end
