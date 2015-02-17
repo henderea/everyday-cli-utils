@@ -69,25 +69,6 @@ module EverydayCliUtils
         @types.has_key?(type) ? @types[type].mod_names(names, settings) : names
       end
 
-      #region option procs
-      def option_default(_)
-        false
-      end
-
-      def option_value_determine(current_value, new_value, settings)
-        new_value ? (!settings[:toggle] || !current_value) : current_value
-      end
-
-      def option_name_mod(names, settings)
-        settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
-      end
-
-      def option_value_transform(new_value, _)
-        !(!new_value)
-      end
-
-      #endregion
-
       def def_option_type
         def_type(:option,
                  instance_method(:option_default),
@@ -95,27 +76,6 @@ module EverydayCliUtils
                  instance_method(:option_name_mod),
                  instance_method(:option_value_transform))
       end
-
-      #region option_with_param procs
-      def param_option_default(settings)
-        settings[:append] ? [] : nil
-      end
-
-      def param_option_value_determine(current_value, new_value, settings)
-        settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
-      end
-
-      def param_option_name_mod(names, settings)
-        names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
-        names = settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
-        settings.has_key?(:type) ? (names + [settings[:type]]) : names
-      end
-
-      def param_option_value_transform(new_value, settings)
-        new_value.is_a?(Array) ? (settings[:append] ? new_value : new_value[0]) : (settings[:append] ? [new_value] : new_value)
-      end
-
-      #endregion
 
       def def_option_with_param_type
         def_type(:option_with_param,
@@ -125,6 +85,46 @@ module EverydayCliUtils
                  instance_method(:param_option_value_transform))
       end
     end
+
+    #region option procs
+    def option_default(_)
+      false
+    end
+
+    def option_value_determine(current_value, new_value, settings)
+      new_value ? (!settings[:toggle] || !current_value) : current_value
+    end
+
+    def option_name_mod(names, settings)
+      settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
+    end
+
+    def option_value_transform(new_value, _)
+      !(!new_value)
+    end
+
+    #endregion
+
+    #region option_with_param procs
+    def param_option_default(settings)
+      settings[:append] ? [] : nil
+    end
+
+    def param_option_value_determine(current_value, new_value, settings)
+      settings[:append] ? (current_value + new_value) : ((new_value.nil? || new_value == '') ? current_value : new_value)
+    end
+
+    def param_option_name_mod(names, settings)
+      names[0] << ' PARAM' unless names.any? { |v| v.include?(' ') }
+      names = settings.has_key?(:desc) ? (names + [settings[:desc]]) : names
+      settings.has_key?(:type) ? (names + [settings[:type]]) : names
+    end
+
+    def param_option_value_transform(new_value, settings)
+      new_value.is_a?(Array) ? (settings[:append] ? new_value : new_value[0]) : (settings[:append] ? [new_value] : new_value)
+    end
+
+    #endregion
 
     def_option_type
     def_option_with_param_type
