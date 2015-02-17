@@ -219,11 +219,15 @@ module EverydayCliUtils
     end
 
     def run_special
-      @special_options.to_a.sort_by { |v| v[1].order }.each { |v| v[1].run(self) }
+      run_special_helper { |v| v[1].run(self) }
     end
 
     def run_special_pre_parse
-      @special_options.to_a.sort_by { |v| v[1].order }.each { |v| v[1].run_pre_parse(self) }
+      run_special_helper { |v| v[1].run_pre_parse(self) }
+    end
+
+    def run_special_helper(&block)
+      @special_options.to_a.sort_by { |v| v[1].order }.each(&block)
     end
 
     def composite(*layers)
@@ -301,45 +305,41 @@ module EverydayCliUtils
     end
 
     def defaults_option(file_path, names, settings = {})
-      @options             ||= OptionList.new
-      settings[:file_path] = File.expand_path(file_path)
-      @options.register_special(4, :defaults, names, !settings.has_key?(:exit_on_save) || settings[:exit_on_save], 'Defaults set', settings,
-          ->(opt, options) {
-            IO.write(opt.settings[:file_path], options.composite(:local, :arg).to_yaml)
-          }, ->(opt, options) {
-            unless opt.settings[:file_path].nil? || !File.exist?(opt.settings[:file_path])
-              options.update_all :local, YAML::load_file(opt.settings[:file_path])
-            end
-          })
+      defaults_options_helper(file_path, names, settings, 4, :defaults, 'Defaults set', :local)
     end
 
     def global_defaults_option(file_path, names, settings = {})
+      defaults_options_helper(file_path, names, settings, 3, :global_defaults, 'Global defaults set', :global)
+    end
+
+    def defaults_options_helper(file_path, names, settings, order, opt_name, print_on_exit_string, composite_name)
       @options             ||= OptionList.new
       settings[:file_path] = File.expand_path(file_path)
-      @options.register_special(3, :global_defaults, names, !settings.has_key?(:exit_on_save) || settings[:exit_on_save], 'Global defaults set', settings,
-          ->(opt, options) {
-            IO.write(opt.settings[:file_path], options.composite(:global, :arg).to_yaml)
-          }, ->(opt, options) {
-            unless opt.settings[:file_path].nil? || !File.exist?(opt.settings[:file_path])
-              options.update_all :global, YAML::load_file(opt.settings[:file_path])
-            end
-          })
+      @options.register_special(order, opt_name, names, !settings.has_key?(:exit_on_save) || settings[:exit_on_save], print_on_exit_string, settings,
+                                ->(opt, options) {
+                                  IO.write(opt.settings[:file_path], options.composite(composite_name, :arg).to_yaml)
+                                }, ->(opt, options) {
+        unless opt.settings[:file_path].nil? || !File.exist?(opt.settings[:file_path])
+          options.update_all composite_name, YAML::load_file(opt.settings[:file_path])
+        end
+      })
     end
 
     def show_defaults_option(names, settings = {})
-      @options ||= OptionList.new
-      @options.register_special(2, :show_defaults, names, !settings.has_key?(:exit_on_show) || settings[:exit_on_show], nil, settings,
-                                ->(_, options) {
-                                  puts options.show_defaults
-                                })
+      show_info_helper(names, settings, 2, :show_defaults, :exit_on_show) { |_, options|
+        puts options.show_defaults
+      }
     end
 
     def help_option(names, settings = {})
+      show_info_helper(names, settings, 1, :help, :exit_on_print) { |_, options|
+        puts options.help
+      }
+    end
+
+    def show_info_helper(names, settings, order, opt_name, exit_on_sym, &block)
       @options ||= OptionList.new
-      @options.register_special(1, :help, names, !settings.has_key?(:exit_on_print) || settings[:exit_on_print], nil, settings,
-                                ->(_, options) {
-                                  puts options.help
-                                })
+      @options.register_special(order, opt_name, names, !settings.has_key?(exit_on_sym) || settings[exit_on_sym], nil, settings, block)
     end
 
     def default_settings(settings = {})
