@@ -23,6 +23,11 @@ module EverydayCliUtils
       block.call(options[val.to_i - 1])
     end
 
+    def self::ask_yn(question, &block)
+      resp = Readline.readline("#{question} (yes/no) ", true)
+      block.call(resp.downcase == 'yes' || resp.downcase == 'y')
+    end
+
     def self::hash_to_options(hash, extra = [])
       hash.keys + extra
     end
