@@ -27,6 +27,17 @@ module EverydayCliUtils
       block.call(val) if !options[:only] || options[:only] == (val ? :yes : :no)
     end
 
+    def self.ask_prefill(question, prefill)
+      old_hook = Readline.pre_input_hook
+      Readline.pre_input_hook =-> {
+        Readline.insert_text(prefill)
+        Readline.redisplay
+      }
+      rval = Readline.readline(question, true)
+      Readline.pre_input_hook = old_hook
+      rval
+    end
+
     def self.hash_to_options(hash, extra = [])
       hash.keys + extra
     end
