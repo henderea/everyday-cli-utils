@@ -14,10 +14,10 @@ class String
     end
   end
 
-  def respond_to?(method)
+  def respond_to?(method, include_all = false)
     name   = method.to_s
     colors = 'black|red|green|yellow|blue|purple|cyan|white|none'
-    (!(name =~ /format(_bold)?(_underline)?(?:_fg_(#{colors}))?(?:_bg_(#{colors}))?/).nil?) || old_respond_to?(method)
+    (!(name =~ /format(_bold)?(_underline)?(?:_fg_(#{colors}))?(?:_bg_(#{colors}))?/).nil?) || old_respond_to?(method, include_all)
   end
 
   def format_all
