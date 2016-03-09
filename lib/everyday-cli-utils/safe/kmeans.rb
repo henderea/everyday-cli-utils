@@ -51,8 +51,8 @@ module EverydayCliUtils
         cluster  = false
         distance = false
         (0...means.count).each { |i|
-          diff = (means[i] - item).abs
-          if distance == false || diff < distance
+          diff = (means[i] - item) ** 2
+          if distance == false || diff <= distance
             cluster  = i
             distance = diff
           end
@@ -111,7 +111,10 @@ module EverydayCliUtils
       kso      = ks
       clusters = EverydayCliUtils::KmeansUtil.get_clusters(collection, kso)
       ks       = []
-      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? kso[key] : (val.sum / val.count) }
+      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? false : (val.sum / val.count) }
+      min = collection.min
+      max = collection.max
+      ks = ks.map { |k| k || ((Random.rand * (max-min)) + min) }
       ks.sort
       return kso, ks
     end
