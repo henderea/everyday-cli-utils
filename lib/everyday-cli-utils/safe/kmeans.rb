@@ -115,7 +115,7 @@ module EverydayCliUtils
       min = collection.min
       max = collection.max
       ks = ks.map { |k| k || ((Random.rand * (max-min)) + min) }
-      ks.sort
+      ks = ks.sort
       return kso, ks
     end
 
