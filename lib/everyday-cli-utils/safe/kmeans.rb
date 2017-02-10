@@ -111,7 +111,7 @@ module EverydayCliUtils
       kso      = ks
       clusters = EverydayCliUtils::KmeansUtil.get_clusters(collection, kso)
       ks       = []
-      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? false : (val.epg_sum / val.count) }
+      clusters.each_with_index { |val, key| ks[key] = (val.count <= 0) ? false : (EverydayCliUtils::MapUtil.sum(val) / val.count) }
       min = collection.min
       max = collection.max
       ks = ks.map { |k| k || ((Random.rand * (max-min)) + min) }
