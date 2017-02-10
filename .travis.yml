@@ -2,7 +2,7 @@ language: ruby
 gemfile: Gemfile.ci
 addons:
   code_climate:
-    repo_token: ENV[CODECLIMATE_REPO_TOKEN]
+    repo_token: 9c7db3420cd3e03bfdecf3768a39759d6047ca1a1222cc14d57c9a63803eaa35
 # regular test configuration
 after_success:
   - bundle exec codeclimate-test-reporter
