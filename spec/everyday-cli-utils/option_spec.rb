@@ -259,20 +259,21 @@ Script + Global + Local Defaults:
 SHOW
     opt.apply_options :arg, opt1: true
     opt.show_defaults_option %w(-d --show-defaults), exit_on_show: false
-    tmpdir = `mktemp -d -t git-svn-prune`.chomp
-    opt.global_defaults_option "#{tmpdir}/global_defaults.yaml", %w(-g --global-defaults), exit_on_save: true
-    opt.help_option %w(-h --help), exit_on_print: false
-    expect(opt.options).to eq total
-    expect(opt.option_list.composite(:global, :arg)).to eq global_arg
-    expect(opt.option_list.composite(:global, :local)).to eq global_local
-    expect(opt.option_list.composite(:global)).to eq global
-    expect(opt.option_list.composite(:local)).to eq local
-    expect(opt.option_list.composite(:local, :arg)).to eq local_arg
-    expect(opt.option_list.composite(:arg)).to eq arg
-    expect(opt.option_list.composite(:global, :local, :arg)).to eq total
-    $stdout = StringIO.new
-    opt.parse!(%w(-h -d))
-    expect($stdout.string).to eq 'Usage: rspec [options]
+    file = File.expand_path('global_defaults.yaml')
+    begin
+      opt.global_defaults_option file, %w(-g --global-defaults), exit_on_save: true
+      opt.help_option %w(-h --help), exit_on_print: false
+      expect(opt.options).to eq total
+      expect(opt.option_list.composite(:global, :arg)).to eq global_arg
+      expect(opt.option_list.composite(:global, :local)).to eq global_local
+      expect(opt.option_list.composite(:global)).to eq global
+      expect(opt.option_list.composite(:local)).to eq local
+      expect(opt.option_list.composite(:local, :arg)).to eq local_arg
+      expect(opt.option_list.composite(:arg)).to eq arg
+      expect(opt.option_list.composite(:global, :local, :arg)).to eq total
+      $stdout = StringIO.new
+      opt.parse!(%w(-h -d))
+      expect($stdout.string).to eq 'Usage: rspec [options]
     -1, --opt-1
     -2, --big-opt-2 PARAM
     -3, --bigger-opt-3 PARAM
@@ -297,7 +298,10 @@ Script + Global + Local Defaults:
     -4 PARAM, --even-bigger-opt-4    [5, 4]
 
 '
-    expect { opt.parse!(%w(-g)) }.to raise_exception(SystemExit)
+      expect { opt.parse!(%w(-g)) }.to raise_exception(SystemExit)
+    ensure
+      File.delete(file)
+    end
   end
 
   it 'still supports the old option style' do
