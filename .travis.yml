@@ -1,2 +1,8 @@
 language: ruby
 gemfile: Gemfile.ci
+addons:
+  code_climate:
+    repo_token: ENV[CODECLIMATE_REPO_TOKEN]
+# regular test configuration
+after_success:
+  - bundle exec codeclimate-test-reporter
