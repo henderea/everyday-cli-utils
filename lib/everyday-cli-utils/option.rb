@@ -416,14 +416,17 @@ module EverydayCliUtils
     end
 
     def opts
+      @options ||= OptionList.new
       @options.opts
     end
 
     def options
+      @options ||= OptionList.new
       @options.composite(:global, :local, :arg)
     end
 
     def option_list
+      @options ||= OptionList.new
       @options
     end
 
@@ -438,6 +441,7 @@ module EverydayCliUtils
     end
 
     def help_str=(str)
+      @options ||= OptionList.new
       @options.help_str = str
     end
 

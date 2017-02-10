@@ -182,6 +182,8 @@ describe EverydayCliUtils::OptionUtil do
     -0, --set-defaults               set defaults
 '
     expect(opt.to_s).to eq expected
+    opt.help_str = "#{expected}\nTest"
+    expect(opt.help).to eq "#{expected}\nTest"
   end
 
   it 'supports layers' do
@@ -195,6 +197,7 @@ describe EverydayCliUtils::OptionUtil do
     clean        = { opt1: false, opt2: [], opt3: nil, opt4: [] }
     clean2       = { opt1: true, opt2: [], opt3: nil, opt4: [] }
     opt          = Option1.new
+    expect(opt.opts).to be_a(OptionParser)
     opt.default_settings toggle: true, append: true
     opt.option :opt1, %w(-1 --opt-1)
     opt.option_with_param :opt2, %w(-2 --big-opt-2)
@@ -255,6 +258,10 @@ Script + Global + Local Defaults:
 
 SHOW
     opt.apply_options :arg, opt1: true
+    opt.show_defaults_option %w(-d --show-defaults), exit_on_show: false
+    tmpdir = `mktemp -d -t git-svn-prune`.chomp
+    opt.global_defaults_option "#{tmpdir}/global_defaults.yaml", %w(-g --global-defaults), exit_on_save: true
+    opt.help_option %w(-h --help), exit_on_print: false
     expect(opt.options).to eq total
     expect(opt.option_list.composite(:global, :arg)).to eq global_arg
     expect(opt.option_list.composite(:global, :local)).to eq global_local
@@ -263,5 +270,47 @@ SHOW
     expect(opt.option_list.composite(:local, :arg)).to eq local_arg
     expect(opt.option_list.composite(:arg)).to eq arg
     expect(opt.option_list.composite(:global, :local, :arg)).to eq total
+    $stdout = StringIO.new
+    opt.parse!(%w(-h -d))
+    expect($stdout.string).to eq 'Usage: rspec [options]
+    -1, --opt-1
+    -2, --big-opt-2 PARAM
+    -3, --bigger-opt-3 PARAM
+    -4, --even-bigger-opt-4 PARAM
+    -d, --show-defaults
+    -g, --global-defaults
+    -h, --help
+Script Defaults:
+    -1, --opt-1                      true
+    -2 PARAM, --big-opt-2            []
+    -3 PARAM, --bigger-opt-3         nil
+    -4 PARAM, --even-bigger-opt-4    []
+
+Script + Global Defaults:
+    -1, --opt-1                      false
+    -3 PARAM, --bigger-opt-3         \'hi\'
+    -4 PARAM, --even-bigger-opt-4    [5]
+
+Script + Global + Local Defaults:
+    -2 PARAM, --big-opt-2            [\'hi\', \'bye\']
+    -3 PARAM, --bigger-opt-3         \'bye\'
+    -4 PARAM, --even-bigger-opt-4    [5, 4]
+
+'
+    expect { opt.parse!(%w(-g)) }.to raise_exception(SystemExit)
+  end
+
+  it 'still supports the old option style' do
+    vals = {value: '', multi: [], toggle: true}
+    opts = OptionParser.new { |opts|
+        EverydayCliUtils::Option.add_option_with_param(vals, opts, ['-v', '--value PARAM'], :value)
+        EverydayCliUtils::Option.add_option_with_param(vals, opts, ['-m', '--multi PARAM'], :multi, append: true)
+        EverydayCliUtils::Option.add_option(vals, opts, %w(-t --toggle), :toggle, toggle: true)
+    }
+    expected = {value: '', multi: [], toggle: true}
+    expect(vals).to eq expected
+    opts.parse!(%w(-v ABC -m DEF -m GHI -t))
+    expected = {value: 'ABC', multi: ['DEF', 'GHI'], toggle: false}
+    expect(vals).to eq expected
   end
 end

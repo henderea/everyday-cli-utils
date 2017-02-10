@@ -16,7 +16,7 @@ describe 'maputil' do
 
   it 'provides a shortcut for summing the values of an list' do
     arr = (0..9).to_a
-    sum = arr.sum
+    sum = arr.epg_sum
     expect(sum).to eq 45
   end
 
@@ -88,5 +88,13 @@ describe 'maputil' do
     extended = hash2.extend_hash(hash1)
     expected = { a: 11, b: 2, c: 3, d: 14, e: 5, f: 16 }
     expect(extended).to eq expected
+  end
+
+  it 'provides a means of subtracting one hash from another' do
+    hash1    = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
+    hash2    = { a: 1, d: 14, f: 6 }
+    diff = hash1 - hash2
+    expected = { b: 2, c: 3, d: 4, e: 5 }
+    expect(diff).to eq expected
   end
 end

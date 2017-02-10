@@ -20,6 +20,8 @@ describe 'override' do
     arr.override(:first) { "Boo! #{self.overrides.first}" }
     arr.override(:first) { "Boo Again! #{self.overrides[1].first}" }
     arr.override(:first) { "Boo Again Again! #{self.overrides[1].first} | #{self.overrides.first}" }
+    expect(arr.has_override?(:first)).to be true
+    expect(arr.has_override?(:test)).to be false
     expect(arr.first).to eq 'Boo Again Again! Boo! 1 | Boo Again! 1'
   end
 
@@ -27,6 +29,8 @@ describe 'override' do
     TestClass.override(:test) { |t| "Boo! #{self.overrides.test("-#{t}-")}" }
     TestClass.override(:test) { |t| "Boo Again! #{self.overrides[1].test("+#{t}+")}" }
     TestClass.override(:test) { |t| "Boo Again Again! #{self.overrides[1].test("!#{t}!")} | #{self.overrides.test("~#{t}~")}" }
+    expect(TestClass.has_override?(:first)).to be false
+    expect(TestClass.has_override?(:test)).to be true
     expect(TestClass.new.test('Eric')).to eq 'Boo Again Again! Boo! Hi -!Eric!-! | Boo Again! Hi +~Eric~+!'
   end
 

@@ -94,6 +94,10 @@ class Object
     MethodOverrides.register_override(s, self, method_name, &block)
   end
 
+  def has_override?(method_name)
+    !self.true_overrides.empty?(method_name)
+  end
+
   class << self
     def class_overrides(s)
       @overrides && @overrides.get(s)
@@ -109,6 +113,10 @@ class Object
 
     def override(method_name, &block)
       MethodOverrides.register_override(self, self, method_name, &block)
+    end
+
+    def has_override?(method_name)
+      !self.true_overrides.empty?(method_name)
     end
   end
 end

@@ -9,7 +9,7 @@ module Enumerable
     EverydayCliUtils::MapUtil.filtermap(self, &block)
   end
 
-  def sum
+  def epg_sum
     EverydayCliUtils::MapUtil.sum(self)
   end
 
